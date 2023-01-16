@@ -47,6 +47,8 @@ create table if not exists public.notifications (
     entity_id uuid,
 
     created_at timestamp with time zone default timezone('utc' :: text, now()) not null,
+
+    has_been_seen boolean default false not null,
     unique (type, notifier_id, actor_id, entity_id)
 );
 
@@ -79,6 +81,7 @@ create or replace view notifications_view
             n.entity_id,
             n.actor_id,
             n.created_at,
+            n.has_been_seen,
             case 
                 when n.type = 'like' then
                     (select jsonb_build_object(
@@ -101,4 +104,48 @@ create or replace view notifications_view
             end as metadata
         from public.notifications n
         order by n.created_at desc;
+
+-- triggers
+create function public.handle_likes()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+   notifier_id uuid; 
+begin
+    select user_id
+    into notifier_id
+    from public.posts
+    where id = new.post_id;
+
+    insert into public.notifications (type, notifier_id, actor_id, entity_id)
+    values ('like', notifier_id, new.user_id, new.post_id);
+    return new;
+end;
+$$;
+
+-- trigger the function every time a user is created
+create trigger on_user_like
+  after insert on public.likes
+  for each row execute procedure public.handle_likes();
+
+create function public.handle_delete_likes()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+   notifier_id uuid; 
+begin
+    delete from public.notifications
+    where type = 'like' and actor_id = old.user_id and entity_id = old.post_id;
+    return null;
+end;
+$$;
+
+-- trigger the function every time a user is created
+create trigger on_user_delete_like
+  after delete on public.likes
+  for each row execute procedure public.handle_delete_likes();
 ```
