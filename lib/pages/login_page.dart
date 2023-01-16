@@ -10,6 +10,8 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
+  final _usernameController = TextEditingController();
+
   final _formKey = GlobalKey<FormState>();
 
   var _loading = false;
@@ -34,9 +36,29 @@ class _LoginPageState extends State<LoginPage> {
                 padding: listPadding,
                 children: [
                   TextFormField(
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter an email';
+                      }
+                      return null;
+                    },
                     controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(
                       label: Text('Email'),
+                    ),
+                  ),
+                  spacer,
+                  TextFormField(
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please set a username';
+                      }
+                      return null;
+                    },
+                    controller: _usernameController,
+                    decoration: const InputDecoration(
+                      label: Text('Username'),
                     ),
                   ),
                   spacer,
@@ -49,8 +71,10 @@ class _LoginPageState extends State<LoginPage> {
                         _loading = true;
                       });
                       final email = _emailController.text;
+                      final name = _usernameController.text;
                       await supabase.auth.signInWithOtp(
                         email: email,
+                        data: {'name': name},
                         emailRedirectTo: 'com.supabase://login',
                       );
 

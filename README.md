@@ -16,7 +16,7 @@ create table if not exists public.users (
 
 create table if not exists public.posts (
     id uuid not null primary key default uuid_generate_v4(),
-    user_id uuid references public.users(id) default auth.uid() on delete cascade not null,
+    user_id uuid references public.users(id) on delete cascade not null default auth.uid(),
     created_at timestamp with time zone default timezone('utc' :: text, now()) not null,
     body text not null,
     constraint tweet_length_validation check (char_length(body) <= 280)
@@ -57,12 +57,10 @@ alter table public.users enable row level security;
 create policy "Public profiles are viewable by everyone." on public.users for select using (true);
 create policy "Can insert user" on public.users for insert with check (auth.uid() = id);
 create policy "Can update user" on public.users for update using (auth.uid() = id) with check (auth.uid() = id);
-create policy "Can delete user" on public.users for delete using (auth.uid() = id);
 
 alter table public.posts enable row level security;
 create policy "Posts are viewable by everyone. " on public.posts for select using (true);
 create policy "Can insert posts" on public.posts for insert with check (auth.uid() = user_id);
-create policy "Can update posts" on public.posts for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "Can delete posts" on public.posts for delete using (auth.uid() = user_id);
 
 alter table public.likes enable row level security;
@@ -112,7 +110,7 @@ language plpgsql
 security definer set search_path = public
 as $$
 begin
-  insert into public.profiles (id, name)
+  insert into public.users (id, name)
   values (new.id, new.raw_user_meta_data->>'name');
   return new;
 end;
@@ -141,7 +139,6 @@ begin
 end;
 $$;
 
--- trigger the function every time a user is created
 create trigger on_user_like
   after insert on public.likes
   for each row execute procedure public.handle_likes();
@@ -160,7 +157,6 @@ begin
 end;
 $$;
 
--- trigger the function every time a user is created
 create trigger on_user_delete_like
   after delete on public.likes
   for each row execute procedure public.handle_delete_likes();
