@@ -49,7 +49,10 @@ class _LoginPageState extends State<LoginPage> {
                         _loading = true;
                       });
                       final email = _emailController.text;
-                      await supabase.auth.signInWithOtp(email: email);
+                      await supabase.auth.signInWithOtp(
+                        email: email,
+                        emailRedirectTo: 'com.supabase://login',
+                      );
 
                       setState(() {
                         _loading = false;
