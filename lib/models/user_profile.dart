@@ -1,7 +1,7 @@
 class UserProfile {
   final String id;
   final String name;
-  final String imageUrl;
+  final String? imageUrl;
   final String? description;
 
   UserProfile({

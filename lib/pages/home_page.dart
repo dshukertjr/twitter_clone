@@ -15,7 +15,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final HomeTab _currentTab = HomeTab.timeline;
+  HomeTab _currentTab = HomeTab.timeline;
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +30,12 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentTab.index,
+        onTap: (value) {
+          setState(() {
+            _currentTab = HomeTab.values[value];
+          });
+        },
         items: const [
           BottomNavigationBarItem(
             icon: Icon(FeatherIcons.home),
@@ -75,7 +81,7 @@ class _TimelineTabState extends State<_TimelineTab> {
   Future<void> _getPosts() async {
     final data = await supabase
         .from('posts')
-        .select<List<Map<String, dynamic>>>('*, users(*)');
+        .select<List<Map<String, dynamic>>>('*, user:users(*)');
     setState(() {
       _loading = false;
       _posts = data.map(Post.fromJson).toList();
@@ -89,7 +95,9 @@ class _TimelineTabState extends State<_TimelineTab> {
       child: _loading
           ? preloader
           : _posts!.isEmpty
-              ? const Center(child: Text('No Posts'))
+              ? const Center(
+                  child: Text('No Posts'),
+                )
               : ListView.separated(
                   itemCount: _posts!.length,
                   itemBuilder: ((context, index) {
