@@ -6,17 +6,17 @@ Twitter clone build with Flutter and Supabase.
 -- Tables
 create table if not exists public.users (
     id uuid primary key not null references auth.users(id),
-    created_at timestamp with time zone default timezone('utc' :: text, now()) not null,
     name text not null unique,
-    description text not null,
+    description text,
     image_url text,
+    created_at timestamp with time zone default timezone('utc' :: text, now()) not null,
     constraint username_validation check (char_length(name) >= 1 and char_length(name) <= 24),
     constraint description_validation check (char_length(description) <= 160)
 );
 
 create table if not exists public.posts (
     id uuid not null primary key default uuid_generate_v4(),
-    user_id uuid references public.users(id) on delete cascade not null,
+    user_id uuid references public.users(id) default auth.uid() on delete cascade not null,
     created_at timestamp with time zone default timezone('utc' :: text, now()) not null,
     body text not null,
     constraint tweet_length_validation check (char_length(body) <= 280)
@@ -106,6 +106,22 @@ create or replace view notifications_view
         order by n.created_at desc;
 
 -- triggers
+create function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  insert into public.profiles (id, name)
+  values (new.id, new.raw_user_meta_data->>'name');
+  return new;
+end;
+$$;
+
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
+
 create function public.handle_likes()
 returns trigger
 language plpgsql

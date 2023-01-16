@@ -1,28 +1,69 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:twitter_clone/components/post_cell.dart';
 import 'package:twitter_clone/constants.dart';
 import 'package:twitter_clone/models/post.dart';
+import 'package:twitter_clone/pages/compose_post_page.dart';
 
 enum HomeTab { timeline, search, notifications }
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final HomeTab _currentTab = HomeTab.timeline;
+
+  @override
   Widget build(BuildContext context) {
-    return const Scaffold();
+    return Scaffold(
+      appBar: AppBar(),
+      body: IndexedStack(
+        index: _currentTab.index,
+        children: const [
+          _TimelineTab(),
+          _SearchTab(),
+          _NotificationTab(),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(FeatherIcons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(FeatherIcons.search),
+            label: 'Search',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(FeatherIcons.bell),
+            label: 'Notifications',
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.of(context).push(ComposePostPage.route());
+        },
+        child: const Icon(FeatherIcons.plus),
+      ),
+    );
   }
 }
 
-class Timeline extends StatefulWidget {
-  const Timeline({super.key});
+class _TimelineTab extends StatefulWidget {
+  const _TimelineTab();
 
   @override
-  State<Timeline> createState() => _TimelineState();
+  State<_TimelineTab> createState() => _TimelineTabState();
 }
 
-class _TimelineState extends State<Timeline> {
-  final bool _loading = false;
+class _TimelineTabState extends State<_TimelineTab> {
+  bool _loading = true;
   List<Post>? _posts;
 
   @override
@@ -36,6 +77,7 @@ class _TimelineState extends State<Timeline> {
         .from('posts')
         .select<List<Map<String, dynamic>>>('*, users(*)');
     setState(() {
+      _loading = false;
       _posts = data.map(Post.fromJson).toList();
     });
   }
@@ -46,7 +88,7 @@ class _TimelineState extends State<Timeline> {
       onRefresh: () async {},
       child: _loading
           ? preloader
-          : _posts == null
+          : _posts!.isEmpty
               ? const Center(child: Text('No Posts'))
               : ListView.separated(
                   itemCount: _posts!.length,
@@ -57,5 +99,23 @@ class _TimelineState extends State<Timeline> {
                   separatorBuilder: (_, __) => const Divider(),
                 ),
     );
+  }
+}
+
+class _SearchTab extends StatelessWidget {
+  const _SearchTab();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(child: Text('search tab'));
+  }
+}
+
+class _NotificationTab extends StatelessWidget {
+  const _NotificationTab();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(child: Text('notification tab'));
   }
 }

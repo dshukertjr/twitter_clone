@@ -6,9 +6,9 @@ import 'package:twitter_clone/pages/login_page.dart';
 
 Future<void> main() async {
   await Supabase.initialize(
-    url: 'https://nhwlewfmhomcxgaqbamn.supabase.co',
+    url: 'https://iklpnvjgvkoqcdcjdoyw.supabase.co',
     anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5od2xld2ZtaG9tY3hnYXFiYW1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzM3Njk0ODksImV4cCI6MTk4OTM0NTQ4OX0.Be-43W7144En6aSAs_v54jN_4QixL1fAykZf5A6tMMU',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlrbHBudmpndmtvcWNkY2pkb3l3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzM4NzEwMDMsImV4cCI6MTk4OTQ0NzAwM30.F7NwngvXo55C29pC5eBOp7FvUitjXASz9l88MdTrD0g',
   );
   runApp(const MyApp());
 }
@@ -18,6 +18,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return const MaterialApp(
+      home: HomePage(),
+    );
+
     return MaterialApp(
       title: 'Twitter Clone',
       home: StreamBuilder<AuthState>(
