@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:twitter_clone/constants.dart';
+import 'package:twitter_clone/models/post.dart';
 
 class ComposePostPage extends StatefulWidget {
-  static Route<void> route() {
+  /// Returns the inserted post if there are any
+  static Route<Post?> route() {
     return MaterialPageRoute(
       fullscreenDialog: true,
       builder: ((context) {
@@ -47,9 +49,23 @@ class _ComposePostPageState extends State<ComposePostPage> {
                     const SnackBar(content: Text('Please write something')));
                 return;
               }
-              await supabase.from('posts').insert({'body': body});
+              final insertedData = await supabase
+                  .from('posts')
+                  .insert({'body': body})
+                  .select<Map<String, dynamic>>()
+                  .single();
+              final data = await supabase
+                  .from('posts')
+                  .select<Map<String, dynamic>>(
+                      '*, user:users(*), like_count:likes(count), my_like:likes(count)')
+                  .match({
+                'id': insertedData['id'],
+                'my_like.user_id': supabase.auth.currentUser!.id,
+              }).single();
+              final post = Post.fromJson(data);
+
               if (mounted) {
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(post);
               }
             },
             child: const Text('Tweet'),
@@ -59,6 +75,8 @@ class _ComposePostPageState extends State<ComposePostPage> {
       body: SingleChildScrollView(
         padding: listPadding,
         child: TextFormField(
+          maxLength: 280,
+          maxLines: null,
           autofocus: true,
           controller: _postController,
           decoration: const InputDecoration(

@@ -17,16 +17,42 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   HomeTab _currentTab = HomeTab.timeline;
 
+  List<Post>? _posts;
+  bool _isTimelineLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _getPosts();
+  }
+
+  Future<void> _getPosts() async {
+    final data = await supabase
+        .from('posts')
+        .select<List<Map<String, dynamic>>>(
+            '*, user:users(*), like_count:likes(count), my_like:likes(count)')
+        .eq('my_like.user_id', supabase.auth.currentUser!.id)
+        .order('created_at')
+        .limit(20);
+    setState(() {
+      _isTimelineLoading = false;
+      _posts = data.map(Post.fromJson).toList();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
       body: IndexedStack(
         index: _currentTab.index,
-        children: const [
-          _TimelineTab(),
-          _SearchTab(),
-          _NotificationTab(),
+        children: [
+          _TimelineTab(
+            posts: _posts,
+            loading: _isTimelineLoading,
+          ),
+          const _SearchTab(),
+          const _NotificationTab(),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -52,8 +78,18 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.of(context).push(ComposePostPage.route());
+        onPressed: () async {
+          final post =
+              await Navigator.of(context).push(ComposePostPage.route());
+          if (post != null) {
+            setState(() {
+              if (_posts == null) {
+                _posts = [post];
+              } else {
+                _posts!.insert(0, post);
+              }
+            });
+          }
         },
         child: const Icon(FeatherIcons.plus),
       ),
@@ -61,38 +97,20 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class _TimelineTab extends StatefulWidget {
-  const _TimelineTab();
-
-  @override
-  State<_TimelineTab> createState() => _TimelineTabState();
-}
-
-class _TimelineTabState extends State<_TimelineTab> {
-  bool _loading = true;
-  List<Post>? _posts;
-
-  @override
-  void initState() {
-    super.initState();
-    _getPosts();
-  }
-
-  Future<void> _getPosts() async {
-    final data = await supabase
-        .from('posts')
-        .select<List<Map<String, dynamic>>>('*, user:users(*)');
-    setState(() {
-      _loading = false;
-      _posts = data.map(Post.fromJson).toList();
-    });
-  }
+class _TimelineTab extends StatelessWidget {
+  final List<Post>? _posts;
+  final bool _loading;
+  const _TimelineTab({
+    required List<Post>? posts,
+    required bool loading,
+  })  : _posts = posts,
+        _loading = loading;
 
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
       onRefresh: () async {},
-      child: _loading
+      child: _loading || _posts == null
           ? preloader
           : _posts!.isEmpty
               ? const Center(

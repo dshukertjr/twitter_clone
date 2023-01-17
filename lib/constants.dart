@@ -11,3 +11,6 @@ const spacer = SizedBox(
 const preloader = Center(child: CircularProgressIndicator());
 
 final supabase = Supabase.instance.client;
+
+const defaultProfileImageUrl =
+    'https://twirpz.files.wordpress.com/2015/06/twitter-avi-gender-balanced-figure.png';

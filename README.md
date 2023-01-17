@@ -25,7 +25,7 @@ create table if not exists public.posts (
 create table if not exists public.likes (
     id uuid not null primary key default uuid_generate_v4(),
     post_id uuid references public.posts(id) on delete cascade not null,
-    user_id uuid references public.users(id) on delete cascade not null,
+    user_id uuid references public.users(id) on delete cascade not null default auth.uid(),
     created_at timestamp with time zone default timezone('utc' :: text, now()) not null,
     unique (post_id, user_id)
 );
