@@ -22,6 +22,6 @@ class Post {
         body = json['body'],
         createdAt = DateTime.parse(json['created_at']),
         likeCount = json['like_count'][0]['count'],
-        haveLiked = (json['my_like'] as List).isNotEmpty,
+        haveLiked = json['my_like'][0]['count'] > 0,
         user = UserProfile.fromJson(json['user']);
 }

@@ -116,24 +116,74 @@ class _TimelineTab extends StatelessWidget {
               ? const Center(
                   child: Text('No Posts'),
                 )
-              : ListView.separated(
-                  itemCount: _posts!.length,
-                  itemBuilder: ((context, index) {
-                    final post = _posts![index];
-                    return PostCell(post: post);
-                  }),
-                  separatorBuilder: (_, __) => const Divider(),
-                ),
+              : _Timeline(posts: _posts),
     );
   }
 }
 
-class _SearchTab extends StatelessWidget {
-  const _SearchTab();
+class _Timeline extends StatelessWidget {
+  const _Timeline({
+    Key? key,
+    required List<Post>? posts,
+  })  : _posts = posts,
+        super(key: key);
+
+  final List<Post>? _posts;
 
   @override
   Widget build(BuildContext context) {
-    return const Center(child: Text('search tab'));
+    return ListView.separated(
+      itemCount: _posts!.length,
+      itemBuilder: ((context, index) {
+        final post = _posts![index];
+        return PostCell(post: post);
+      }),
+      separatorBuilder: (_, __) => const Divider(height: 1),
+    );
+  }
+}
+
+class _SearchTab extends StatefulWidget {
+  const _SearchTab();
+
+  @override
+  State<_SearchTab> createState() => _SearchTabState();
+}
+
+class _SearchTabState extends State<_SearchTab> {
+  Future<void> search(String query) async {
+    setState(() {
+      _loading = true;
+    });
+    final data = await supabase
+        .from('posts')
+        .select<List<Map<String, dynamic>>>(
+            '*, user:users(*), like_count:likes(count), my_like:likes(count)')
+        .eq('my_like.user_id', supabase.auth.currentUser!.id)
+        .textSearch('body', query)
+        .order('created_at')
+        .limit(20);
+    setState(() {
+      _loading = false;
+      _posts = data.map(Post.fromJson).toList();
+    });
+  }
+
+  List<Post>? _posts;
+  bool _loading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return preloader;
+    }
+    if (_posts == null) {
+      return const Center(child: Text('Search something'));
+    }
+    if (_posts!.isEmpty) {
+      return const Center(child: Text('We couldn\'t find anything'));
+    }
+    return _Timeline(posts: _posts);
   }
 }
 

@@ -13,7 +13,7 @@ class PostCell extends StatelessWidget {
     return GestureDetector(
       onTap: () {},
       child: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.only(top: 12, right: 12, bottom: 0, left: 12),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
