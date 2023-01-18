@@ -64,6 +64,8 @@ class _ComposePostPageState extends State<ComposePostPage> {
               }).single();
               final post = Post.fromJson(data);
 
+              /// bring inserting logic to posts state notifier
+
               if (mounted) {
                 Navigator.of(context).pop(post);
               }

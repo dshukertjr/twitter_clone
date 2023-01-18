@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:twitter_clone/components/post_cell.dart';
 import 'package:twitter_clone/components/profile_image.dart';
@@ -8,6 +9,54 @@ import 'package:twitter_clone/models/app_notification.dart';
 import 'package:twitter_clone/models/post.dart';
 import 'package:twitter_clone/models/user_profile.dart';
 import 'package:twitter_clone/pages/compose_post_page.dart';
+
+// final postsProvider = FutureProvider<List<Post>>((ref) async {
+//   final data = await supabase
+//       .from('posts')
+//       .select<List<Map<String, dynamic>>>(
+//           '*, user:users(*), like_count:likes(count), my_like:likes(count)')
+//       .eq('my_like.user_id', supabase.auth.currentUser!.id)
+//       .order('created_at')
+//       .limit(20);
+//   return data.map(Post.fromJson).toList();
+// });
+
+final postsProvider = StateNotifierProvider<PostsNotifier, PostsState>((ref) {
+  return PostsNotifier()..getPosts();
+});
+
+abstract class PostsState {}
+
+class PostsLoading extends PostsState {}
+
+class PostsLoaded extends PostsState {
+  final List<Post> posts;
+
+  PostsLoaded(this.posts);
+}
+
+class PostsNotifier extends StateNotifier<PostsState> {
+  PostsNotifier() : super(PostsLoading());
+
+  var _posts = <Post>[];
+
+  Future<void> getPosts() async {
+    final data = await supabase
+        .from('posts')
+        .select<List<Map<String, dynamic>>>(
+            '*, user:users(*), like_count:likes(count), my_like:likes(count)')
+        .eq('my_like.user_id', supabase.auth.currentUser!.id)
+        .order('created_at')
+        .limit(20);
+    _posts = data.map(Post.fromJson).toList();
+    state = PostsLoaded(_posts);
+  }
+
+  void addPost(Post newPost) {
+    _posts = [newPost, ..._posts];
+    state = PostsLoaded(_posts);
+  }
+}
 
 enum HomeTab { timeline, search, notifications }
 
@@ -20,29 +69,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   HomeTab _currentTab = HomeTab.timeline;
-
-  List<Post>? _posts;
-  bool _isTimelineLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _getPosts();
-  }
-
-  Future<void> _getPosts() async {
-    final data = await supabase
-        .from('posts')
-        .select<List<Map<String, dynamic>>>(
-            '*, user:users(*), like_count:likes(count), my_like:likes(count)')
-        .eq('my_like.user_id', supabase.auth.currentUser!.id)
-        .order('created_at')
-        .limit(20);
-    setState(() {
-      _isTimelineLoading = false;
-      _posts = data.map(Post.fromJson).toList();
-    });
-  }
 
   Widget _appbarTitle() {
     if (_currentTab == HomeTab.timeline) {
@@ -78,13 +104,10 @@ class _HomePageState extends State<HomePage> {
       ),
       body: IndexedStack(
         index: _currentTab.index,
-        children: [
-          _TimelineTab(
-            posts: _posts,
-            loading: _isTimelineLoading,
-          ),
-          const _SearchTab(),
-          const _NotificationTab(),
+        children: const [
+          _TimelineTab(),
+          _SearchTab(),
+          _NotificationTab(),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -111,17 +134,7 @@ class _HomePageState extends State<HomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final post =
-              await Navigator.of(context).push(ComposePostPage.route());
-          if (post != null) {
-            setState(() {
-              if (_posts == null) {
-                _posts = [post];
-              } else {
-                _posts!.insert(0, post);
-              }
-            });
-          }
+          await Navigator.of(context).push(ComposePostPage.route());
         },
         child: const Icon(FeatherIcons.plus),
       ),
@@ -129,26 +142,34 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class _TimelineTab extends StatelessWidget {
-  final List<Post>? _posts;
-  final bool _loading;
-  const _TimelineTab({
-    required List<Post>? posts,
-    required bool loading,
-  })  : _posts = posts,
-        _loading = loading;
+class _TimelineTab extends ConsumerWidget {
+  const _TimelineTab();
+
+  Widget _timeline(PostsState state) {
+    if (state is PostsLoading) {
+      return preloader;
+    } else if (state is PostsLoaded) {
+      final posts = state.posts;
+      if (posts.isEmpty) {
+        return const Center(child: Text('No Posts'));
+      } else {
+        return _Timeline(posts: posts);
+      }
+    } else {
+      throw UnimplementedError();
+    }
+  }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final postsState = ref.watch(postsProvider);
+    final postsStateNotifier = ref.watch(postsProvider.notifier);
+
     return RefreshIndicator(
-      onRefresh: () async {},
-      child: _loading || _posts == null
-          ? preloader
-          : _posts!.isEmpty
-              ? const Center(
-                  child: Text('No Posts'),
-                )
-              : _Timeline(posts: _posts),
+      onRefresh: () async {
+        postsStateNotifier.getPosts();
+      },
+      child: _timeline(postsState),
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:twitter_clone/constants.dart';
 import 'package:twitter_clone/pages/home_page.dart';
@@ -10,7 +11,7 @@ Future<void> main() async {
     anonKey:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlrbHBudmpndmtvcWNkY2pkb3l3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzM4NzEwMDMsImV4cCI6MTk4OTQ0NzAwM30.F7NwngvXo55C29pC5eBOp7FvUitjXASz9l88MdTrD0g',
   );
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
