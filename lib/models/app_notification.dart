@@ -45,11 +45,11 @@ class UnknownNotification extends AppNotification {
 
 class LikeNotification extends AppNotification {
   final UserProfile actor;
-  final _NotificationPost post;
+  final NotificationPost post;
 
   LikeNotification.fromJson(Map<String, dynamic> json)
       : actor = UserProfile.fromJson(json['metadata']['actor']),
-        post = _NotificationPost.fromJson(json['metadata']['post']),
+        post = NotificationPost.fromJson(json['metadata']['post']),
         super(
           entityId: json['entity_id'],
           createdAt: DateTime.parse(json['created_at']),
@@ -57,16 +57,16 @@ class LikeNotification extends AppNotification {
         );
 }
 
-class _NotificationPost {
+class NotificationPost {
   final String id;
   final String body;
 
-  _NotificationPost({
+  NotificationPost({
     required this.id,
     required this.body,
   });
 
-  _NotificationPost.fromJson(Map<String, dynamic> json)
+  NotificationPost.fromJson(Map<String, dynamic> json)
       : id = json['id'],
         body = json['body'];
 }

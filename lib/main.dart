@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:twitter_clone/constants.dart';
 import 'package:twitter_clone/pages/home_page.dart';
 import 'package:twitter_clone/pages/login_page.dart';
+import 'package:twitter_clone/state_notifiers/auth_state_notifier.dart';
 
 Future<void> main() async {
   await Supabase.initialize(
@@ -14,11 +15,25 @@ Future<void> main() async {
   runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
+  Widget _page(AppAuthState appAuthState) {
+    if (appAuthState is AppAuthSignedOut) {
+      return const LoginPage();
+    } else if (appAuthState is AppAuthSignedIn) {
+      return preloader;
+    } else if (appAuthState is AppAuthProfileLoaded) {
+      return const HomePage();
+    } else {
+      throw UnimplementedError(
+          'Unknown AppAuthState: ${appAuthState.runtimeType}');
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final appAuthState = ref.watch(appAuthProvider);
     return MaterialApp(
       title: 'Twitter Clone',
       theme: ThemeData.light().copyWith(
@@ -32,19 +47,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      home: StreamBuilder<AuthState>(
-          stream: supabase.auth.onAuthStateChange,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState != ConnectionState.active) {
-              return preloader;
-            }
-            final session = snapshot.data?.session;
-            if (session == null) {
-              return const LoginPage();
-            } else {
-              return const HomePage();
-            }
-          }),
+      home: _page(appAuthState),
     );
   }
 }

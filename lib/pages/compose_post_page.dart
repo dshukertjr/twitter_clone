@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:twitter_clone/constants.dart';
-import 'package:twitter_clone/pages/home_page.dart';
+import 'package:twitter_clone/state_notifiers/posts_state_notifier.dart';
 
 class ComposePostPage extends ConsumerStatefulWidget {
   /// Returns the inserted post if there are any
