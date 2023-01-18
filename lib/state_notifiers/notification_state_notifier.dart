@@ -14,6 +14,8 @@ abstract class NotificationsState {}
 
 class NotificationLoading extends NotificationsState {}
 
+class EmptyNotification extends NotificationsState {}
+
 class NotificationsLoaded extends NotificationsState {
   final List<AppNotification> notifications;
 
@@ -35,7 +37,11 @@ class NotificationsNotifier extends StateNotifier<NotificationsState> {
         .limit(20);
 
     _notifications = data.map(AppNotification.fromJson).toList();
-    state = NotificationsLoaded(_notifications);
+    if (_notifications.isEmpty) {
+      state = EmptyNotification();
+    } else {
+      state = NotificationsLoaded(_notifications);
+    }
   }
 
   void _setupRealtimeListener() {

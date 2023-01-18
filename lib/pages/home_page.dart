@@ -10,6 +10,7 @@ import 'package:twitter_clone/pages/compose_post_page.dart';
 import 'package:twitter_clone/state_notifiers/auth_state_notifier.dart';
 import 'package:twitter_clone/state_notifiers/notification_state_notifier.dart';
 import 'package:twitter_clone/state_notifiers/posts_state_notifier.dart';
+import 'package:twitter_clone/state_notifiers/search_state_notifier.dart';
 
 enum HomeTab { timeline, search, notifications }
 
@@ -150,47 +151,23 @@ class _Timeline extends StatelessWidget {
   }
 }
 
-class _SearchTab extends StatefulWidget {
+class _SearchTab extends ConsumerWidget {
   const _SearchTab();
 
   @override
-  State<_SearchTab> createState() => _SearchTabState();
-}
-
-class _SearchTabState extends State<_SearchTab> {
-  Future<void> search(String query) async {
-    setState(() {
-      _loading = true;
-    });
-    final data = await supabase
-        .from('posts')
-        .select<List<Map<String, dynamic>>>(
-            '*, user:users(*), like_count:likes(count), my_like:likes(count)')
-        .eq('my_like.user_id', supabase.auth.currentUser!.id)
-        .textSearch('body', query)
-        .order('created_at')
-        .limit(20);
-    setState(() {
-      _loading = false;
-      _posts = data.map(Post.fromJson).toList();
-    });
-  }
-
-  List<Post>? _posts;
-  bool _loading = false;
-
-  @override
-  Widget build(BuildContext context) {
-    if (_loading) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final searchState = ref.watch(searchNotifierProvider);
+    if (searchState is BeforeSearch) {
+      return const SizedBox();
+    } else if (searchState is SearchLoading) {
       return preloader;
-    }
-    if (_posts == null) {
-      return const Center(child: Text('Search something'));
-    }
-    if (_posts!.isEmpty) {
+    } else if (searchState is SearchResultEmpty) {
       return const Center(child: Text('We couldn\'t find anything'));
+    } else if (searchState is SearchLoaded) {
+      final posts = searchState.posts;
+      return _Timeline(posts: posts);
     }
-    return _Timeline(posts: _posts);
+    throw UnimplementedError('Unknown SearchState: ${searchState.runtimeType}');
   }
 }
 
@@ -202,11 +179,10 @@ class _NotificationTab extends ConsumerWidget {
     final notificationsState = ref.watch(notificationsProvider);
     if (notificationsState is NotificationLoading) {
       return preloader;
+    } else if (notificationsState is EmptyNotification) {
+      return const Center(child: Text('There are no notifications.'));
     } else if (notificationsState is NotificationsLoaded) {
       final notifications = notificationsState.notifications;
-      if (notifications.isEmpty) {
-        return const Center(child: Text('There are no notifications.'));
-      }
       return ListView.separated(
         itemBuilder: ((context, index) {
           final notification = notifications[index];
