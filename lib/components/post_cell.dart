@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:twitter_clone/components/profile_image.dart';
 import 'package:twitter_clone/constants.dart';
 import 'package:twitter_clone/models/post.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -17,12 +18,7 @@ class PostCell extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CircleAvatar(
-              foregroundImage: _post.user.imageUrl == null
-                  ? null
-                  : NetworkImage(_post.user.imageUrl!),
-              backgroundImage: const NetworkImage(defaultProfileImageUrl),
-            ),
+            ProfileImage(user: _post.user),
             const SizedBox(width: 8),
             Expanded(
               child: Column(
@@ -55,23 +51,30 @@ class PostCell extends StatelessWidget {
                     children: [
                       TextButton.icon(
                         onPressed: () async {
-                          await supabase
-                              .from('likes')
-                              .insert({'post_id': _post.id});
+                          if (_post.haveLiked) {
+                            await supabase
+                                .from('likes')
+                                .delete()
+                                .match({'post_id': _post.id});
+                          } else {
+                            await supabase
+                                .from('likes')
+                                .insert({'post_id': _post.id});
+                          }
                         },
                         icon: Icon(
                           _post.haveLiked
                               ? Icons.favorite
                               : Icons.favorite_border,
                           size: 16,
-                          color: _post.haveLiked ? Colors.pink[300] : null,
+                          color: _post.haveLiked ? Colors.pink : null,
                         ),
                         label: Text(
                           _post.likeCount == 0
                               ? ''
                               : _post.likeCount.toString(),
                           style: TextStyle(
-                            color: _post.haveLiked ? Colors.pink[300] : null,
+                            color: _post.haveLiked ? Colors.pink : null,
                           ),
                         ),
                       ),

@@ -84,6 +84,7 @@ create or replace view notifications_view
                 when n.type = 'like' then
                     (select jsonb_build_object(
                         'actor', jsonb_build_object(
+                            'id', u.id,
                             'name', u.name,
                             'image_url', u.image_url
                         ),
@@ -97,7 +98,8 @@ create or replace view notifications_view
                         on l.user_id = u.id
                     inner join public.posts p
                         on l.post_id = p.id
-                    where n.entity_id = l.id)
+                    where n.entity_id = l.post_id
+                        and n.actor_id = l.user_id)
                 else null
             end as metadata
         from public.notifications n
@@ -160,4 +162,7 @@ $$;
 create trigger on_user_delete_like
   after delete on public.likes
   for each row execute procedure public.handle_delete_likes();
+
+-- Enable realtime
+alter publication supabase_realtime add table public.notifications;
 ```

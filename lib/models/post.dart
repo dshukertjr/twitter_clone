@@ -24,4 +24,26 @@ class Post {
         likeCount = json['like_count'][0]['count'],
         haveLiked = json['my_like'][0]['count'] > 0,
         user = UserProfile.fromJson(json['user']);
+
+  Post like() {
+    return Post(
+      id: id,
+      body: body,
+      createdAt: createdAt,
+      likeCount: likeCount + 1,
+      haveLiked: true,
+      user: user,
+    );
+  }
+
+  Post unlike() {
+    return Post(
+      id: id,
+      body: body,
+      createdAt: createdAt,
+      likeCount: likeCount - 1,
+      haveLiked: false,
+      user: user,
+    );
+  }
 }

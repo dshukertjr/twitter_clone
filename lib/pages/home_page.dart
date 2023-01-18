@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:twitter_clone/components/post_cell.dart';
+import 'package:twitter_clone/components/profile_image.dart';
 import 'package:twitter_clone/constants.dart';
+import 'package:twitter_clone/models/app_notification.dart';
 import 'package:twitter_clone/models/post.dart';
 import 'package:twitter_clone/pages/compose_post_page.dart';
 
@@ -187,11 +190,119 @@ class _SearchTabState extends State<_SearchTab> {
   }
 }
 
-class _NotificationTab extends StatelessWidget {
+class _NotificationTab extends StatefulWidget {
   const _NotificationTab();
 
   @override
+  State<_NotificationTab> createState() => _NotificationTabState();
+}
+
+class _NotificationTabState extends State<_NotificationTab> {
+  List<AppNotification>? _notifications;
+  bool _loading = true;
+  late final RealtimeChannel _realtimeChannel;
+
+  @override
+  void initState() {
+    super.initState();
+    _getNotifications();
+    _setupRealtimeListener();
+  }
+
+  Future<void> _getNotifications() async {
+    final data = await supabase
+        .from('notifications_view')
+        .select<List<Map<String, dynamic>>>()
+        .order('created_at')
+        .limit(20);
+    setState(() {
+      _notifications = data.map(AppNotification.fromJson).toList();
+      _loading = false;
+    });
+  }
+
+  void _setupRealtimeListener() {
+    _realtimeChannel = supabase.channel('notification');
+    _realtimeChannel.on(
+        RealtimeListenTypes.postgresChanges,
+        ChannelFilter(
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+        ), (payload, [ref]) {
+      _getNotifications();
+    }).subscribe();
+  }
+
+  @override
+  void dispose() {
+    supabase.removeChannel(_realtimeChannel);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const Center(child: Text('notification tab'));
+    if (_loading) {
+      return preloader;
+    }
+    final notifications = _notifications!;
+    if (notifications.isEmpty) {
+      return const Center(child: Text('There are no notifications.'));
+    }
+    return ListView.separated(
+        itemBuilder: ((context, index) {
+          final notification = notifications[index];
+          if (notification is LikeNotification) {
+            return Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(left: 16),
+                    child: Icon(
+                      Icons.favorite,
+                      color: Colors.pink,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ProfileImage(
+                          user: notification.actor,
+                          size: 30,
+                        ),
+                        const SizedBox(height: 4),
+                        RichText(
+                          text: TextSpan(
+                              style: Theme.of(context).textTheme.bodyText1,
+                              text: notification.actor.name,
+                              children: [
+                                TextSpan(
+                                  style: Theme.of(context).textTheme.bodyText2,
+                                  text: ' liked your Tweet',
+                                ),
+                              ]),
+                        ),
+                        Text(
+                          notification.post.body,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          } else {
+            return const SizedBox();
+          }
+        }),
+        separatorBuilder: (_, __) => const Divider(height: 1),
+        itemCount: notifications.length);
   }
 }
