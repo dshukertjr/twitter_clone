@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:twitter_clone/constants.dart';
-import 'package:twitter_clone/models/post.dart';
+import 'package:twitter_clone/pages/home_page.dart';
 
-class ComposePostPage extends StatefulWidget {
+class ComposePostPage extends ConsumerStatefulWidget {
   /// Returns the inserted post if there are any
-  static Route<Post?> route() {
+  static Route<void> route() {
     return MaterialPageRoute(
       fullscreenDialog: true,
       builder: ((context) {
@@ -16,77 +17,71 @@ class ComposePostPage extends StatefulWidget {
   const ComposePostPage({super.key});
 
   @override
-  State<ComposePostPage> createState() => _ComposePostPageState();
+  ConsumerState<ComposePostPage> createState() => _ComposePostPageState();
 }
 
-class _ComposePostPageState extends State<ComposePostPage> {
-  final _postController = TextEditingController();
+class _ComposePostPageState extends ConsumerState<ComposePostPage> {
+  final _postBodyController = TextEditingController();
+
+  var _loading = false;
 
   @override
   void initState() {
     super.initState();
-    _postController.addListener(() {
+    _postBodyController.addListener(() {
       setState(() {});
     });
   }
 
   @override
   void dispose() {
-    _postController.dispose();
+    _postBodyController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final postsStateNotifier = ref.watch(postsProvider.notifier);
     return Scaffold(
       appBar: AppBar(
         actions: [
           ElevatedButton(
             onPressed: () async {
-              final body = _postController.text;
+              final body = _postBodyController.text;
               if (body.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Please write something')));
                 return;
               }
-              final insertedData = await supabase
-                  .from('posts')
-                  .insert({'body': body})
-                  .select<Map<String, dynamic>>()
-                  .single();
-              final data = await supabase
-                  .from('posts')
-                  .select<Map<String, dynamic>>(
-                      '*, user:users(*), like_count:likes(count), my_like:likes(count)')
-                  .match({
-                'id': insertedData['id'],
-                'my_like.user_id': supabase.auth.currentUser!.id,
-              }).single();
-              final post = Post.fromJson(data);
+              setState(() {
+                _loading = true;
+              });
 
-              /// bring inserting logic to posts state notifier
+              await postsStateNotifier.createPost(body);
 
               if (mounted) {
-                Navigator.of(context).pop(post);
+                Navigator.of(context).pop();
               }
             },
             child: const Text('Tweet'),
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: listPadding,
-        child: TextFormField(
-          maxLength: 280,
-          maxLines: null,
-          autofocus: true,
-          controller: _postController,
-          decoration: const InputDecoration(
-            hintText: 'What\'s happening?',
-            border: InputBorder.none,
-          ),
-        ),
-      ),
+      body: _loading
+          ? preloader
+          : SingleChildScrollView(
+              padding: listPadding,
+              child: TextFormField(
+                maxLength: 280,
+                maxLines: null,
+                autofocus: true,
+                controller: _postBodyController,
+                decoration: const InputDecoration(
+                  hintText: 'What\'s happening?',
+                  border: InputBorder.none,
+                ),
+              ),
+            ),
     );
   }
 }

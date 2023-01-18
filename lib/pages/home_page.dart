@@ -10,17 +10,6 @@ import 'package:twitter_clone/models/post.dart';
 import 'package:twitter_clone/models/user_profile.dart';
 import 'package:twitter_clone/pages/compose_post_page.dart';
 
-// final postsProvider = FutureProvider<List<Post>>((ref) async {
-//   final data = await supabase
-//       .from('posts')
-//       .select<List<Map<String, dynamic>>>(
-//           '*, user:users(*), like_count:likes(count), my_like:likes(count)')
-//       .eq('my_like.user_id', supabase.auth.currentUser!.id)
-//       .order('created_at')
-//       .limit(20);
-//   return data.map(Post.fromJson).toList();
-// });
-
 final postsProvider = StateNotifierProvider<PostsNotifier, PostsState>((ref) {
   return PostsNotifier()..getPosts();
 });
@@ -52,8 +41,23 @@ class PostsNotifier extends StateNotifier<PostsState> {
     state = PostsLoaded(_posts);
   }
 
-  void addPost(Post newPost) {
-    _posts = [newPost, ..._posts];
+  Future<void> createPost(String body) async {
+    final insertedData = await supabase
+        .from('posts')
+        .insert({'body': body})
+        .select<Map<String, dynamic>>()
+        .single();
+    final data = await supabase
+        .from('posts')
+        .select<Map<String, dynamic>>(
+            '*, user:users(*), like_count:likes(count), my_like:likes(count)')
+        .match({
+      'id': insertedData['id'],
+      'my_like.user_id': supabase.auth.currentUser!.id,
+    }).single();
+    final post = Post.fromJson(data);
+
+    _posts = [post, ..._posts];
     state = PostsLoaded(_posts);
   }
 }
