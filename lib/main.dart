@@ -24,6 +24,11 @@ class MyApp extends StatelessWidget {
         appBarTheme: const AppBarTheme(
           elevation: 1,
           color: Colors.white,
+          titleTextStyle: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
         ),
       ),
       home: StreamBuilder<AuthState>(

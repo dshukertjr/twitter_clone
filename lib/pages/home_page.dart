@@ -6,6 +6,7 @@ import 'package:twitter_clone/components/profile_image.dart';
 import 'package:twitter_clone/constants.dart';
 import 'package:twitter_clone/models/app_notification.dart';
 import 'package:twitter_clone/models/post.dart';
+import 'package:twitter_clone/models/user_profile.dart';
 import 'package:twitter_clone/pages/compose_post_page.dart';
 
 enum HomeTab { timeline, search, notifications }
@@ -43,10 +44,38 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  Widget _appbarTitle() {
+    if (_currentTab == HomeTab.timeline) {
+      return Image.asset(
+        'assets/logo.png',
+        height: 40,
+      );
+    } else if (_currentTab == HomeTab.search) {
+      return const Text('Search');
+    } else {
+      return const Text('Notifications');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        leading: Padding(
+          padding: const EdgeInsets.all(12),
+          child: ProfileImage(
+            user: UserProfile(
+              name: '',
+              id: '',
+              imageUrl: '',
+              description: '',
+            ),
+            size: 56,
+          ),
+        ),
+        centerTitle: _currentTab == HomeTab.timeline,
+        title: _appbarTitle(),
+      ),
       body: IndexedStack(
         index: _currentTab.index,
         children: [
