@@ -20,6 +20,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Twitter Clone',
+      theme: ThemeData.light().copyWith(
+        appBarTheme: const AppBarTheme(
+          elevation: 1,
+          color: Colors.white,
+        ),
+      ),
       home: StreamBuilder<AuthState>(
           stream: supabase.auth.onAuthStateChange,
           builder: (context, snapshot) {

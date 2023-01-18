@@ -106,7 +106,7 @@ create or replace view notifications_view
         order by n.created_at desc;
 
 -- triggers
-create function public.handle_new_user()
+create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
 security definer set search_path = public
@@ -122,7 +122,7 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
 
-create function public.handle_likes()
+create or replace function public.handle_likes()
 returns trigger
 language plpgsql
 security definer set search_path = public
@@ -133,15 +133,20 @@ begin
     select user_id
     into notifier_id
     from public.posts
-    where id = new.post_id;
+    where id = new.post_id
+        and user_id != new.user_id;
 
-    insert into public.notifications (type, notifier_id, actor_id, entity_id)
-    values ('like', notifier_id, new.user_id, new.post_id);
+    if found then
+        insert into public.notifications (type, notifier_id, actor_id, entity_id)
+        values ('like', notifier_id, new.user_id, new.post_id);
+    end if;
+    
     return new;
+
 end;
 $$;
 
-create trigger on_user_like
+create or replace trigger on_user_like
   after insert on public.likes
   for each row execute procedure public.handle_likes();
 
