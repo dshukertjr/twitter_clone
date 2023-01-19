@@ -22,7 +22,7 @@ class MyApp extends ConsumerWidget {
     if (appAuthState is AppAuthSignedOut) {
       return const LoginPage();
     } else if (appAuthState is AppAuthSignedIn) {
-      return preloader;
+      return const Scaffold(body: preloader);
     } else if (appAuthState is AppAuthProfileLoaded) {
       return const HomePage();
     } else {

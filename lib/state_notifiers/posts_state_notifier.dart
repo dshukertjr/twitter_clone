@@ -52,4 +52,18 @@ class PostsNotifier extends StateNotifier<PostsState> {
     _posts = [post, ..._posts];
     state = PostsLoaded(_posts);
   }
+
+  Future<void> likePost(String postId) async {
+    final targetIndex = _posts.indexWhere((post) => post.id == postId);
+    _posts[targetIndex] = _posts[targetIndex].like();
+    state = PostsLoaded(_posts);
+    await supabase.from('likes').insert({'post_id': postId});
+  }
+
+  Future<void> unlikePost(String postId) async {
+    final targetIndex = _posts.indexWhere((post) => post.id == postId);
+    _posts[targetIndex] = _posts[targetIndex].unlike();
+    state = PostsLoaded(_posts);
+    await supabase.from('likes').delete().match({'post_id': postId});
+  }
 }
