@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:twitter_clone/components/post_cell.dart';
 import 'package:twitter_clone/components/profile_image.dart';
@@ -12,7 +11,7 @@ import 'package:twitter_clone/state_notifiers/notification_state_notifier.dart';
 import 'package:twitter_clone/state_notifiers/search_state_notifier.dart';
 import 'package:twitter_clone/state_notifiers/timeline_state_notifier.dart';
 
-enum HomeTab { timeline, search, notifications }
+enum HomeTab { timeline, search, notifications, messages }
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -59,27 +58,39 @@ class _HomePageState extends ConsumerState<HomePage> {
             _TimelineTab(),
             _SearchTab(),
             _NotificationTab(),
+            _MessagesTab(),
           ],
         ),
         bottomNavigationBar: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
           currentIndex: _currentTab.index,
           onTap: (value) {
             setState(() {
               _currentTab = HomeTab.values[value];
             });
           },
+          showSelectedLabels: false,
+          showUnselectedLabels: false,
           items: const [
             BottomNavigationBarItem(
-              icon: Icon(FeatherIcons.home),
+              icon: Icon(Icons.home_outlined),
+              activeIcon: Icon(Icons.home),
               label: 'Home',
             ),
             BottomNavigationBarItem(
-              icon: Icon(FeatherIcons.search),
+              icon: Icon(Icons.search_outlined),
+              activeIcon: Icon(Icons.search),
               label: 'Search',
             ),
             BottomNavigationBarItem(
-              icon: Icon(FeatherIcons.bell),
+              icon: Icon(Icons.notifications_outlined),
+              activeIcon: Icon(Icons.notifications),
               label: 'Notifications',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.email_outlined),
+              activeIcon: Icon(Icons.email),
+              label: 'Messages',
             ),
           ],
         ),
@@ -87,7 +98,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           onPressed: () async {
             await Navigator.of(context).push(ComposePostPage.route());
           },
-          child: const Icon(FeatherIcons.plus),
+          child: const Icon(Icons.add),
         ),
       );
     } else {
@@ -159,7 +170,7 @@ class _SearchTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final searchState = ref.watch(searchNotifierProvider);
     if (searchState is BeforeSearch) {
-      return const SizedBox();
+      return const Center(child: Text('Start searching'));
     } else if (searchState is SearchLoading) {
       return preloader;
     } else if (searchState is SearchResultEmpty) {
@@ -244,5 +255,16 @@ class _NotificationTab extends ConsumerWidget {
       throw UnimplementedError(
           'Unknown NotificationState ${notificationsState.runtimeType}');
     }
+  }
+}
+
+class _MessagesTab extends StatelessWidget {
+  const _MessagesTab();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Text('Messages'),
+    );
   }
 }

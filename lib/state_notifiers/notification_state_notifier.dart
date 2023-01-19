@@ -18,8 +18,12 @@ class EmptyNotification extends NotificationsState {}
 
 class NotificationsLoaded extends NotificationsState {
   final List<AppNotification> notifications;
+  final bool hasNewNotifications;
 
-  NotificationsLoaded(this.notifications);
+  NotificationsLoaded({
+    required this.notifications,
+    required this.hasNewNotifications,
+  });
 }
 
 class NotificationsNotifier extends StateNotifier<NotificationsState> {
@@ -40,8 +44,24 @@ class NotificationsNotifier extends StateNotifier<NotificationsState> {
     if (_notifications.isEmpty) {
       state = EmptyNotification();
     } else {
-      state = NotificationsLoaded(_notifications);
+      final hasNewNotifications = _notifications
+              .indexWhere((notification) => notification.hasBeenSeen) <
+          0;
+      state = NotificationsLoaded(
+        notifications: _notifications,
+        hasNewNotifications: hasNewNotifications,
+      );
     }
+  }
+
+  Future<void> readNotification() async {
+    _notifications =
+        _notifications.map((notification) => notification.read()).toList();
+    state = NotificationsLoaded(
+        notifications: _notifications, hasNewNotifications: false);
+    await supabase.from('notifications').upsert(_notifications
+        .where((notification) => !notification.hasBeenSeen)
+        .map((notification) => {'id': notification.id, 'hasBeenSeen': true}));
   }
 
   void _setupRealtimeListener() {
