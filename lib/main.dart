@@ -40,6 +40,7 @@ class MyApp extends ConsumerWidget {
         appBarTheme: const AppBarTheme(
           elevation: 1,
           color: Colors.white,
+          iconTheme: IconThemeData(color: Colors.black),
           titleTextStyle: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
@@ -63,6 +64,7 @@ class MyApp extends ConsumerWidget {
         appBarTheme: const AppBarTheme(
           elevation: 1,
           color: Colors.black,
+          iconTheme: IconThemeData(color: Colors.white),
           titleTextStyle: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
