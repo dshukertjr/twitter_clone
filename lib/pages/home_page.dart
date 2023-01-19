@@ -9,8 +9,8 @@ import 'package:twitter_clone/models/post.dart';
 import 'package:twitter_clone/pages/compose_post_page.dart';
 import 'package:twitter_clone/state_notifiers/auth_state_notifier.dart';
 import 'package:twitter_clone/state_notifiers/notification_state_notifier.dart';
-import 'package:twitter_clone/state_notifiers/posts_state_notifier.dart';
 import 'package:twitter_clone/state_notifiers/search_state_notifier.dart';
+import 'package:twitter_clone/state_notifiers/timeline_state_notifier.dart';
 
 enum HomeTab { timeline, search, notifications }
 
@@ -100,10 +100,10 @@ class _HomePageState extends ConsumerState<HomePage> {
 class _TimelineTab extends ConsumerWidget {
   const _TimelineTab();
 
-  Widget _timeline(PostsState state) {
-    if (state is PostsLoading) {
+  Widget _timeline(TimelineState state) {
+    if (state is TimelineLoading) {
       return preloader;
-    } else if (state is PostsLoaded) {
+    } else if (state is TimelineLoaded) {
       final posts = state.posts;
       if (posts.isEmpty) {
         return const Center(child: Text('No Posts'));
@@ -117,8 +117,9 @@ class _TimelineTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final postsState = ref.watch(postsProvider);
-    final postsStateNotifier = ref.watch(postsProvider.notifier);
+    final postsState = ref.watch(timelineStateProvider);
+    final postsStateNotifier =
+        ref.watch(timelineStateNotifierProvider.notifier);
 
     return RefreshIndicator(
       onRefresh: () async {

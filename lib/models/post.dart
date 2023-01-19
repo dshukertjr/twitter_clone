@@ -46,4 +46,18 @@ class Post {
       user: user,
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    if (other.runtimeType != runtimeType) {
+      return false;
+    }
+    return other is Post && other.hashCode == hashCode;
+  }
+
+  @override
+  int get hashCode => id.hashCode;
 }

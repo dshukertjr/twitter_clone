@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:twitter_clone/constants.dart';
-import 'package:twitter_clone/state_notifiers/posts_state_notifier.dart';
+import 'package:twitter_clone/state_notifiers/timeline_state_notifier.dart';
 
 class ComposePostPage extends ConsumerStatefulWidget {
   /// Returns the inserted post if there are any
@@ -41,7 +41,8 @@ class _ComposePostPageState extends ConsumerState<ComposePostPage> {
 
   @override
   Widget build(BuildContext context) {
-    final postsStateNotifier = ref.watch(postsProvider.notifier);
+    final timelineStateNotifer =
+        ref.watch(timelineStateNotifierProvider.notifier);
     return Scaffold(
       appBar: AppBar(
         actions: [
@@ -57,7 +58,7 @@ class _ComposePostPageState extends ConsumerState<ComposePostPage> {
                 _loading = true;
               });
 
-              await postsStateNotifier.createPost(body);
+              await timelineStateNotifer.createPost(body);
 
               if (mounted) {
                 Navigator.of(context).pop();

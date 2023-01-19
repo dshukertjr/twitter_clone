@@ -47,6 +47,17 @@ class MyApp extends ConsumerWidget {
           ),
         ),
       ),
+      darkTheme: ThemeData.dark().copyWith(
+        appBarTheme: const AppBarTheme(
+          elevation: 1,
+          color: Colors.black,
+          titleTextStyle: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+        ),
+      ),
       home: _page(appAuthState),
     );
   }
