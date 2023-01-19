@@ -45,7 +45,7 @@ class NotificationsNotifier extends StateNotifier<NotificationsState> {
       state = EmptyNotification();
     } else {
       final hasNewNotifications = _notifications
-              .indexWhere((notification) => notification.hasBeenSeen) <
+              .indexWhere((notification) => !notification.hasBeenSeen) <
           0;
       state = NotificationsLoaded(
         notifications: _notifications,

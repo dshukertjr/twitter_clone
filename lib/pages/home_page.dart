@@ -39,6 +39,8 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   Widget build(BuildContext context) {
     final appAuthState = ref.watch(appAuthProvider);
+    final notificationsState = ref.watch(notificationsProvider);
+
     if (appAuthState is AppAuthProfileLoaded) {
       return Scaffold(
         appBar: AppBar(
@@ -71,23 +73,43 @@ class _HomePageState extends ConsumerState<HomePage> {
           },
           showSelectedLabels: false,
           showUnselectedLabels: false,
-          items: const [
-            BottomNavigationBarItem(
+          items: [
+            const BottomNavigationBarItem(
               icon: Icon(Icons.home_outlined),
               activeIcon: Icon(Icons.home),
               label: 'Home',
             ),
-            BottomNavigationBarItem(
+            const BottomNavigationBarItem(
               icon: Icon(Icons.search_outlined),
               activeIcon: Icon(Icons.search),
               label: 'Search',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.notifications_outlined),
-              activeIcon: Icon(Icons.notifications),
+              icon: Stack(
+                children: [
+                  const Icon(Icons.notifications_outlined),
+                  if (notificationsState is NotificationsLoaded &&
+                      notificationsState.hasNewNotifications)
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(8),
+                          ),
+                          color: Theme.of(context).primaryColor,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              activeIcon: const Icon(Icons.notifications),
               label: 'Notifications',
             ),
-            BottomNavigationBarItem(
+            const BottomNavigationBarItem(
               icon: Icon(Icons.email_outlined),
               activeIcon: Icon(Icons.email),
               label: 'Messages',
