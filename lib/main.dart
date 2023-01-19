@@ -46,6 +46,18 @@ class MyApp extends ConsumerWidget {
             fontSize: 20,
           ),
         ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ButtonStyle(
+            shape: MaterialStateProperty.all<OutlinedBorder>(
+              const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(20)),
+              ),
+            ),
+            padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+            ),
+          ),
+        ),
       ),
       darkTheme: ThemeData.dark().copyWith(
         appBarTheme: const AppBarTheme(

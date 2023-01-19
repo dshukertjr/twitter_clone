@@ -46,25 +46,31 @@ class _ComposePostPageState extends ConsumerState<ComposePostPage> {
     return Scaffold(
       appBar: AppBar(
         actions: [
-          ElevatedButton(
-            onPressed: () async {
-              final body = _postBodyController.text;
-              if (body.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please write something')));
-                return;
-              }
-              setState(() {
-                _loading = true;
-              });
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+            child: ElevatedButton(
+              onPressed: _postBodyController.text.isEmpty
+                  ? null
+                  : () async {
+                      final body = _postBodyController.text;
+                      if (body.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Please write something')));
+                        return;
+                      }
+                      setState(() {
+                        _loading = true;
+                      });
 
-              await timelineStateNotifer.createPost(body);
+                      await timelineStateNotifer.createPost(body);
 
-              if (mounted) {
-                Navigator.of(context).pop();
-              }
-            },
-            child: const Text('Tweet'),
+                      if (mounted) {
+                        Navigator.of(context).pop();
+                      }
+                    },
+              child: const Text('Tweet'),
+            ),
           ),
         ],
       ),
