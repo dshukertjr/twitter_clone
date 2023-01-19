@@ -18,11 +18,11 @@ class EmptyNotification extends NotificationsState {}
 
 class NotificationsLoaded extends NotificationsState {
   final List<AppNotification> notifications;
-  final bool hasNewNotifications;
+  final int newNotificationCount;
 
   NotificationsLoaded({
     required this.notifications,
-    required this.hasNewNotifications,
+    required this.newNotificationCount,
   });
 }
 
@@ -44,12 +44,12 @@ class NotificationsNotifier extends StateNotifier<NotificationsState> {
     if (_notifications.isEmpty) {
       state = EmptyNotification();
     } else {
-      final hasNewNotifications = _notifications
-              .indexWhere((notification) => !notification.hasBeenSeen) <
-          0;
+      final newNotificationCount = _notifications
+          .where((notification) => !notification.hasBeenSeen)
+          .length;
       state = NotificationsLoaded(
         notifications: _notifications,
-        hasNewNotifications: hasNewNotifications,
+        newNotificationCount: newNotificationCount,
       );
     }
   }
@@ -58,7 +58,7 @@ class NotificationsNotifier extends StateNotifier<NotificationsState> {
     _notifications =
         _notifications.map((notification) => notification.read()).toList();
     state = NotificationsLoaded(
-        notifications: _notifications, hasNewNotifications: false);
+        notifications: _notifications, newNotificationCount: 0);
     await supabase.from('notifications').upsert(_notifications
         .where((notification) => !notification.hasBeenSeen)
         .map((notification) => {'id': notification.id, 'hasBeenSeen': true}));

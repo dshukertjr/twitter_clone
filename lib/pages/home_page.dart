@@ -86,23 +86,17 @@ class _HomePageState extends ConsumerState<HomePage> {
             ),
             BottomNavigationBarItem(
               icon: Stack(
+                clipBehavior: Clip.none,
                 children: [
                   const Icon(Icons.notifications_outlined),
                   if (notificationsState is NotificationsLoaded &&
-                      notificationsState.hasNewNotifications)
+                      notificationsState.newNotificationCount > 0)
                     Positioned(
-                      right: 0,
-                      top: 0,
-                      child: Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          borderRadius: const BorderRadius.all(
-                            Radius.circular(8),
-                          ),
-                          color: Theme.of(context).primaryColor,
-                        ),
-                      ),
+                      right: -6,
+                      top: -6,
+                      child: _Badge(
+                          label: notificationsState.newNotificationCount
+                              .toString()),
                     ),
                 ],
               ),
@@ -127,6 +121,55 @@ class _HomePageState extends ConsumerState<HomePage> {
       throw UnimplementedError(
           'HomePage displayed with appAuthState: ${appAuthState.runtimeType}');
     }
+  }
+}
+
+class _Badge extends StatelessWidget {
+  const _Badge({
+    Key? key,
+    required this.label,
+  }) : super(key: key);
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: const BorderRadius.all(
+          Radius.circular(20),
+        ),
+        color: Theme.of(context).scaffoldBackgroundColor,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(1.5),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.all(
+              Radius.circular(20),
+            ),
+            color: Theme.of(context).primaryColor,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(1.5),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                minWidth: 10,
+              ),
+              child: Text(
+                label,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onPrimary,
+                  fontSize: 8,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
