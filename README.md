@@ -19,6 +19,7 @@ create table if not exists public.posts (
     user_id uuid references public.users(id) on delete cascade not null default auth.uid(),
     created_at timestamp with time zone default timezone('utc' :: text, now()) not null,
     body text not null,
+    image_url text,
     constraint tweet_length_validation check (char_length(body) <= 280)
 );
 

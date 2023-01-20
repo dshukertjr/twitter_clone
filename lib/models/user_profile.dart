@@ -14,6 +14,6 @@ class UserProfile {
   UserProfile.fromJson(Map<String, dynamic> map)
       : id = map['id'],
         name = map['name'],
-        imageUrl = map['imageUrl'],
+        imageUrl = map['image_url'],
         description = map['description'];
 }

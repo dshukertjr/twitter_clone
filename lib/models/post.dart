@@ -6,6 +6,7 @@ class Post {
   final DateTime createdAt;
   final int likeCount;
   final bool haveLiked;
+  final String? imageUrl;
   final UserProfile user;
 
   Post({
@@ -14,6 +15,7 @@ class Post {
     required this.createdAt,
     required this.likeCount,
     required this.haveLiked,
+    required this.imageUrl,
     required this.user,
   });
 
@@ -23,6 +25,7 @@ class Post {
         createdAt = DateTime.parse(json['created_at']),
         likeCount = json['like_count'][0]['count'],
         haveLiked = json['my_like'][0]['count'] > 0,
+        imageUrl = json['image_url'],
         user = UserProfile.fromJson(json['user']);
 
   Post like() {
@@ -32,6 +35,7 @@ class Post {
       createdAt: createdAt,
       likeCount: likeCount + 1,
       haveLiked: true,
+      imageUrl: imageUrl,
       user: user,
     );
   }
@@ -43,6 +47,7 @@ class Post {
       createdAt: createdAt,
       likeCount: likeCount - 1,
       haveLiked: false,
+      imageUrl: imageUrl,
       user: user,
     );
   }

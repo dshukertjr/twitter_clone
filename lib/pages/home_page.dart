@@ -111,10 +111,16 @@ class _HomePageState extends ConsumerState<HomePage> {
           ],
         ),
         floatingActionButton: FloatingActionButton(
-          onPressed: () async {
-            await Navigator.of(context).push(ComposePostPage.route());
+          onPressed: () {
+            if (_currentTab == HomeTab.messages) {
+// TODO handle composing new messages
+            } else {
+              Navigator.of(context).push(ComposePostPage.route());
+            }
           },
-          child: const Icon(Icons.add),
+          child: _currentTab == HomeTab.messages
+              ? const Icon(Icons.email_outlined)
+              : const Icon(Icons.add),
         ),
       );
     } else {

@@ -47,6 +47,15 @@ class PostCell extends ConsumerWidget {
                   ],
                 ),
                 Text(_post.body),
+                if (_post.imageUrl != null) ...[
+                  const SizedBox(height: 4),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      _post.imageUrl!,
+                    ),
+                  ),
+                ],
                 Row(
                   children: [
                     TextButton.icon(
