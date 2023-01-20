@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:twitter_clone/constants.dart';
 import 'package:twitter_clone/models/user_profile.dart';
+import 'package:twitter_clone/pages/profile_page.dart';
 
 class ProfileImage extends StatelessWidget {
   final UserProfile user;
@@ -14,11 +15,18 @@ class ProfileImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CircleAvatar(
-      radius: size / 2,
-      foregroundImage:
-          user.imageUrl == null ? null : NetworkImage(user.imageUrl!),
-      backgroundImage: const NetworkImage(defaultProfileImageUrl),
+    return ClipOval(
+      child: GestureDetector(
+        onTap: () {
+          Navigator.of(context).push(ProfilePage.route(user.id));
+        },
+        child: CircleAvatar(
+          radius: size / 2,
+          foregroundImage:
+              user.imageUrl == null ? null : NetworkImage(user.imageUrl!),
+          backgroundImage: const NetworkImage(defaultProfileImageUrl),
+        ),
+      ),
     );
   }
 }

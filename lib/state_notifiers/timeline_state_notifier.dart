@@ -3,7 +3,7 @@ import 'package:twitter_clone/constants.dart';
 import 'package:twitter_clone/models/post.dart';
 import 'package:twitter_clone/state_notifiers/posts_state_notifier.dart';
 
-/// Provider that
+/// Provider that returns the timeline state for the UI
 final timelineStateProvider = Provider<TimelineState>((ref) {
   final postsStateNotifier = ref.watch(postsProvider);
   final timelineStateNotifier = ref.watch(timelineStateNotifierProvider);
@@ -24,7 +24,10 @@ final timelineStateProvider = Provider<TimelineState>((ref) {
   }
 });
 
-///
+/// State notifier that handles anything related to loading the home page timeline
+/// The posts from this class should not be displayed on the UI,
+/// and it should only be the reference to how the posts are ordered.
+/// Instead, when displaying posts, use the `postProvider` to retrieve the posts to display.
 final timelineStateNotifierProvider =
     StateNotifierProvider<TimelineStateNotifier, Set<Post>?>((ref) {
   final postsStateNotifier = ref.watch(postsProvider.notifier);
