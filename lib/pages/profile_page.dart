@@ -36,16 +36,32 @@ class ProfilePage extends ConsumerWidget {
                     children: [
                       Align(
                         alignment: Alignment.centerLeft,
-                        child: ProfileImage(user: user!),
+                        child: ProfileImage(
+                          user: user!,
+                          size: 60,
+                        ),
                       ),
-                      Text(user.name),
+                      spacer,
+                      Text(
+                        user.name,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       Text(user.description ?? ''),
                     ],
                   ),
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: posts!.map((post) => PostCell(post: post)).toList(),
+                  children: posts!
+                      .map((post) => [
+                            const Divider(height: 1),
+                            PostCell(post: post),
+                          ])
+                      .expand((widget) => widget)
+                      .toList(),
                 ),
               ],
             ),
