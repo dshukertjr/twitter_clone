@@ -4,7 +4,7 @@ Twitter clone build with Flutter and Supabase.
 
 ```sql
 -- Tables
-create table if not exists public.users (
+create table if not exists public.profiles (
     id uuid primary key not null references auth.users(id),
     name text not null unique,
     description text,
@@ -16,7 +16,7 @@ create table if not exists public.users (
 
 create table if not exists public.posts (
     id uuid not null primary key default uuid_generate_v4(),
-    user_id uuid references public.users(id) on delete cascade not null default auth.uid(),
+    user_id uuid references public.profiles(id) on delete cascade not null default auth.uid(),
     created_at timestamp with time zone default timezone('utc' :: text, now()) not null,
     body text not null,
     image_url text,
@@ -26,10 +26,34 @@ create table if not exists public.posts (
 create table if not exists public.likes (
     id uuid not null primary key default uuid_generate_v4(),
     post_id uuid references public.posts(id) on delete cascade not null,
-    user_id uuid references public.users(id) on delete cascade not null default auth.uid(),
+    user_id uuid references public.profiles(id) on delete cascade not null default auth.uid(),
     created_at timestamp with time zone default timezone('utc' :: text, now()) not null,
     unique (post_id, user_id)
 );
+
+create table if not exists public.rooms (
+    id uuid not null primary key default uuid_generate_v4(),
+    created_at timestamp with time zone default timezone('utc' :: text, now()) not null
+);
+comment on table public.rooms is 'Holds chat rooms';
+
+create table if not exists public.messages (
+    id uuid not null primary key default uuid_generate_v4(),
+    user_id uuid default auth.uid() references public.profiles(id) on delete cascade not null,
+    room_id uuid references public.rooms(id) on delete cascade not null,
+    content text not null,
+    has_been_read boolean default false not null,
+    created_at timestamp with time zone default timezone('utc' :: text, now()) not null
+);
+
+create table if not exists public.room_participants (
+    id uuid not null primary key default uuid_generate_v4(),
+    user_id uuid references public.profiles(id) on delete cascade not null,
+    room_id uuid references public.rooms(id) on delete cascade not null,
+    created_at timestamp with time zone default timezone('utc' :: text, now()) not null,
+    unique (user_id, room_id)
+);
+comment on table public.room_participants is 'Relational table of users and rooms.';
 
 -- enum for different types of notifications
 create type notification_type as enum ('like');
@@ -39,38 +63,19 @@ create table if not exists public.notifications (
     type notification_type not null,
 
     -- the user who will receive the notification
-    notifier_id uuid references public.users(id) on delete cascade not null,
+    notifier_id uuid references public.profiles(id) on delete cascade not null,
 
     -- the user who performed the action
-    actor_id uuid references public.users(id) on delete set null,
+    actor_id uuid references public.profiles(id) on delete set null,
 
     -- id of the entity of the action. e.g. likes.id for `like` type
     entity_id uuid,
 
     created_at timestamp with time zone default timezone('utc' :: text, now()) not null,
 
-    has_been_seen boolean default false not null,
+    has_been_read boolean default false not null,
     unique (type, notifier_id, actor_id, entity_id)
 );
-
---  Row Level Policy
-alter table public.users enable row level security;
-create policy "Public profiles are viewable by everyone." on public.users for select using (true);
-create policy "Can insert user" on public.users for insert with check (auth.uid() = id);
-create policy "Can update user" on public.users for update using (auth.uid() = id) with check (auth.uid() = id);
-
-alter table public.posts enable row level security;
-create policy "Posts are viewable by everyone. " on public.posts for select using (true);
-create policy "Can insert posts" on public.posts for insert with check (auth.uid() = user_id);
-create policy "Can delete posts" on public.posts for delete using (auth.uid() = user_id);
-
-alter table public.likes enable row level security;
-create policy "Likes are viewable by everyone. " on public.likes for select using (true);
-create policy "Users can insert their own likes." on public.likes for insert with check (auth.uid() = user_id);
-create policy "Users can delete own likes." on public.likes for delete using (auth.uid() = user_id);
-
-alter table public.notifications enable row level security;
-create policy "Notifications are viewable by the user" on public.notifications for select using (auth.uid() = notifier_id);
 
 -- Views
 create or replace view notifications_view
@@ -80,7 +85,7 @@ create or replace view notifications_view
             n.entity_id,
             n.actor_id,
             n.created_at,
-            n.has_been_seen,
+            n.has_been_read,
             case 
                 when n.type = 'like' then
                     (select jsonb_build_object(
@@ -95,7 +100,7 @@ create or replace view notifications_view
                         )
                     )
                     from public.likes l
-                    inner join public.users u
+                    inner join public.profiles u
                         on l.user_id = u.id
                     inner join public.posts p
                         on l.post_id = p.id
@@ -106,7 +111,7 @@ create or replace view notifications_view
         from public.notifications n
         order by n.created_at desc;
 
--- triggers
+-- functions & triggers
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -147,7 +152,7 @@ begin
 end;
 $$;
 
-create or replace trigger on_user_like
+create trigger on_user_like
   after insert on public.likes
   for each row execute procedure public.handle_likes();
 
@@ -169,6 +174,82 @@ create trigger on_user_delete_like
   after delete on public.likes
   for each row execute procedure public.handle_delete_likes();
 
+create or replace function is_room_participant(room_id uuid)
+returns boolean as $$
+  select exists(
+    select 1
+    from room_participants
+    where room_id = is_room_participant.room_id and user_id = auth.uid()
+  );
+$$ language sql security definer;
+
+create or replace function create_new_room(other_user_id uuid) returns uuid as $$
+    declare
+        new_room_id uuid;
+    begin
+        -- Check if room with both participants already exist
+        with rooms_with_profiles as (
+            select room_id, array_agg(user_id) as participants
+            from room_participants
+            group by room_id               
+        )
+        select room_id
+        into new_room_id
+        from rooms_with_profiles
+        where create_new_room.other_user_id=any(participants)
+        and auth.uid()=any(participants);
+
+
+        if not found then
+            -- Create a new room
+            insert into public.rooms default values
+            returning id into new_room_id;
+
+            -- Insert the caller user into the new room
+            insert into public.room_participants (user_id, room_id)
+            values (auth.uid(), new_room_id);
+
+            -- Insert the other_user user into the new room
+            insert into public.room_participants (user_id, room_id)
+            values (other_user_id, new_room_id);
+        end if;
+
+        return new_room_id;
+    end
+$$ language plpgsql security definer;
+
 -- Enable realtime
 alter publication supabase_realtime add table public.notifications;
+alter publication supabase_realtime add table public.messages;
+
+--  Row Level Policy
+alter table public.profiles enable row level security;
+create policy "Public profiles are viewable by everyone." on public.profiles for select using (true);
+create policy "Can insert user" on public.profiles for insert with check (auth.uid() = id);
+create policy "Can update user" on public.profiles for update using (auth.uid() = id) with check (auth.uid() = id);
+
+alter table public.posts enable row level security;
+create policy "Posts are viewable by everyone. " on public.posts for select using (true);
+create policy "Can insert posts" on public.posts for insert with check (auth.uid() = user_id);
+create policy "Can delete posts" on public.posts for delete using (auth.uid() = user_id);
+
+alter table public.likes enable row level security;
+create policy "Likes are viewable by everyone. " on public.likes for select using (true);
+create policy "Users can insert their own likes." on public.likes for insert with check (auth.uid() = user_id);
+create policy "Users can delete own likes." on public.likes for delete using (auth.uid() = user_id);
+
+alter table public.notifications enable row level security;
+create policy "Notifications are viewable by the user" on public.notifications for select using (auth.uid() = notifier_id);
+
+alter table public.rooms enable row level security;
+create policy "Users can view rooms that they have joined" on public.rooms for select using (is_room_participant(id));
+
+
+alter table public.room_participants enable row level security;
+create policy "Participants of the room can view other participants." on public.room_participants for select using (is_room_participant(room_id));
+
+
+alter table public.messages enable row level security;
+create policy "Users can view messages on rooms they are in." on public.messages for select using (is_room_participant(room_id));
+create policy "Users can insert messages on rooms they are in." on public.messages for insert with check (is_room_participant(room_id) and user_id = auth.uid());
 ```
