@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:twitter_clone/components/profile_image.dart';
 import 'package:twitter_clone/models/post.dart';
-import 'package:timeago/timeago.dart' as timeago;
 import 'package:twitter_clone/state_notifiers/posts_state_notifier.dart';
 
 class PostCell extends ConsumerWidget {
@@ -18,7 +17,7 @@ class PostCell extends ConsumerWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ProfileImage(user: _post.user),
+          ProfileImage(user: _post.profile),
           const SizedBox(width: 8),
           Expanded(
             child: Column(
@@ -28,14 +27,14 @@ class PostCell extends ConsumerWidget {
                   children: [
                     Flexible(
                       child: Text(
-                        _post.user.name,
+                        _post.profile.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.bodyText1,
                       ),
                     ),
                     Text(
-                      '・${timeago.format(
+                      '・${format(
                         _post.createdAt,
                         locale: 'en_short',
                       )}',

@@ -1,4 +1,4 @@
-import 'package:twitter_clone/models/user_profile.dart';
+import 'package:twitter_clone/models/profile.dart';
 
 enum NotificationType {
   like;
@@ -55,7 +55,7 @@ class UnknownNotification extends AppNotification {
 }
 
 class LikeNotification extends AppNotification {
-  final UserProfile actor;
+  final Profile actor;
   final NotificationPost post;
 
   LikeNotification({
@@ -68,7 +68,7 @@ class LikeNotification extends AppNotification {
   });
 
   LikeNotification.fromJson(Map<String, dynamic> json)
-      : actor = UserProfile.fromJson(json['metadata']['actor']),
+      : actor = Profile.fromJson(json['metadata']['actor']),
         post = NotificationPost.fromJson(json['metadata']['post']),
         super(
           id: json['id'],

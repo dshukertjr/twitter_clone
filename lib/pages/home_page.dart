@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:timeago/timeago.dart';
 import 'package:twitter_clone/components/post_cell.dart';
 import 'package:twitter_clone/components/profile_image.dart';
 import 'package:twitter_clone/constants.dart';
 import 'package:twitter_clone/models/app_notification.dart';
 import 'package:twitter_clone/models/post.dart';
+import 'package:twitter_clone/pages/chat_page.dart';
 import 'package:twitter_clone/pages/compose_post_page.dart';
 import 'package:twitter_clone/state_notifiers/auth_state_notifier.dart';
 import 'package:twitter_clone/state_notifiers/notification_state_notifier.dart';
+import 'package:twitter_clone/state_notifiers/rooms_state_notifier.dart';
 import 'package:twitter_clone/state_notifiers/search_state_notifier.dart';
 import 'package:twitter_clone/state_notifiers/timeline_state_notifier.dart';
 
@@ -56,11 +59,11 @@ class _HomePageState extends ConsumerState<HomePage> {
         ),
         body: IndexedStack(
           index: _currentTab.index,
-          children: const [
-            _TimelineTab(),
-            _SearchTab(),
-            _NotificationTab(),
-            _MessagesTab(),
+          children: [
+            const _TimelineTab(),
+            const _SearchTab(),
+            const _NotificationTab(),
+            _MessagesTab(myUserId: appAuthState.user.id),
           ],
         ),
         bottomNavigationBar: BottomNavigationBar(
@@ -329,13 +332,55 @@ class _NotificationTab extends ConsumerWidget {
   }
 }
 
-class _MessagesTab extends StatelessWidget {
-  const _MessagesTab();
+class _MessagesTab extends ConsumerWidget {
+  const _MessagesTab({
+    required this.myUserId,
+  });
+
+  final String myUserId;
 
   @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text('Messages'),
-    );
+  Widget build(BuildContext context, WidgetRef ref) {
+    final roomsState = ref.watch(roomsStateNotifierProvider(myUserId));
+    if (roomsState is RoomsLoading) {
+      return preloader;
+    } else if (roomsState is RoomsError) {
+      return Center(child: Text(roomsState.message));
+    } else if (roomsState is RoomsEmpty) {
+      return const Center(child: Text('There are no messages yet'));
+    } else if (roomsState is RoomsLoaded) {
+      final rooms = roomsState.rooms;
+      return ListView.builder(
+        itemCount: rooms.length,
+        itemBuilder: (context, index) {
+          final room = rooms[index];
+          final otherUser = room.otherUser;
+
+          return ListTile(
+            onTap: () => Navigator.of(context).push(ChatPage.route(room.id)),
+            leading: CircleAvatar(
+              child: otherUser == null
+                  ? preloader
+                  : Text(otherUser.name.substring(0, 2)),
+            ),
+            title: Text(otherUser == null ? 'Loading...' : otherUser.name),
+            subtitle: room.lastMessage != null
+                ? Text(
+                    room.lastMessage!.content,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  )
+                : const Text('Room created'),
+            trailing: Text(
+              format(
+                room.lastMessage?.createdAt ?? room.createdAt,
+                locale: 'en_short',
+              ),
+            ),
+          );
+        },
+      );
+    }
+    throw UnimplementedError('Unknown roomsState: ${roomsState.runtimeType}');
   }
 }

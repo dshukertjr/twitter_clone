@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:twitter_clone/constants.dart';
-import 'package:twitter_clone/models/user_profile.dart';
+import 'package:twitter_clone/models/profile.dart';
 
 final appAuthProvider =
     StateNotifierProvider<AppAuthStateNotifier, AppAuthState>((ref) {
@@ -14,7 +14,7 @@ class AppAuthSignedOut extends AppAuthState {}
 class AppAuthSignedIn extends AppAuthState {}
 
 class AppAuthProfileLoaded extends AppAuthState {
-  final UserProfile user;
+  final Profile user;
 
   AppAuthProfileLoaded(this.user);
 }
@@ -22,7 +22,7 @@ class AppAuthProfileLoaded extends AppAuthState {
 class AppAuthStateNotifier extends StateNotifier<AppAuthState> {
   AppAuthStateNotifier() : super(AppAuthSignedOut());
 
-  UserProfile? _user;
+  Profile? _user;
 
   void _setupAuthListener() {
     supabase.auth.onAuthStateChange.listen((data) async {
@@ -34,7 +34,7 @@ class AppAuthStateNotifier extends StateNotifier<AppAuthState> {
             .select()
             .eq('id', session.user.id)
             .single();
-        _user = UserProfile.fromJson(data);
+        _user = Profile.fromJson(data);
         state = AppAuthProfileLoaded(_user!);
       }
     });

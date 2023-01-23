@@ -1,17 +1,17 @@
-class UserProfile {
+class Profile {
   final String id;
   final String name;
   final String? imageUrl;
   final String? description;
 
-  UserProfile({
+  Profile({
     required this.id,
     required this.name,
     required this.imageUrl,
     required this.description,
   });
 
-  UserProfile.fromJson(Map<String, dynamic> map)
+  Profile.fromJson(Map<String, dynamic> map)
       : id = map['id'],
         name = map['name'],
         imageUrl = map['image_url'],

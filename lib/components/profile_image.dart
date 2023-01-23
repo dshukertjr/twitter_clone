@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:twitter_clone/constants.dart';
-import 'package:twitter_clone/models/user_profile.dart';
+import 'package:twitter_clone/models/profile.dart';
 import 'package:twitter_clone/pages/profile_page.dart';
 
 class ProfileImage extends StatelessWidget {
-  final UserProfile user;
+  final Profile user;
   final int size;
 
   const ProfileImage({

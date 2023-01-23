@@ -1,4 +1,4 @@
-import 'package:twitter_clone/models/user_profile.dart';
+import 'package:twitter_clone/models/profile.dart';
 
 class Post {
   final String id;
@@ -7,7 +7,7 @@ class Post {
   final int likeCount;
   final bool haveLiked;
   final String? imageUrl;
-  final UserProfile user;
+  final Profile profile;
 
   Post({
     required this.id,
@@ -16,7 +16,7 @@ class Post {
     required this.likeCount,
     required this.haveLiked,
     required this.imageUrl,
-    required this.user,
+    required this.profile,
   });
 
   Post.fromJson(Map<String, dynamic> json)
@@ -26,7 +26,7 @@ class Post {
         likeCount = json['like_count'][0]['count'],
         haveLiked = json['my_like'][0]['count'] > 0,
         imageUrl = json['image_url'],
-        user = UserProfile.fromJson(json['user']);
+        profile = Profile.fromJson(json['user']);
 
   Post like() {
     return Post(
@@ -36,7 +36,7 @@ class Post {
       likeCount: likeCount + 1,
       haveLiked: true,
       imageUrl: imageUrl,
-      user: user,
+      profile: profile,
     );
   }
 
@@ -48,7 +48,7 @@ class Post {
       likeCount: likeCount - 1,
       haveLiked: false,
       imageUrl: imageUrl,
-      user: user,
+      profile: profile,
     );
   }
 

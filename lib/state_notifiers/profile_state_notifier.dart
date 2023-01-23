@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:twitter_clone/constants.dart';
 import 'package:twitter_clone/models/post.dart';
-import 'package:twitter_clone/models/user_profile.dart';
+import 'package:twitter_clone/models/profile.dart';
 import 'package:twitter_clone/state_notifiers/posts_state_notifier.dart';
 
 final profileProvider =
@@ -34,7 +34,7 @@ final _profileStateNotifierProvider = StateNotifierProvider.autoDispose
 });
 
 class ProfileWithPosts {
-  final UserProfile user;
+  final Profile user;
   final List<Post> posts;
 
   ProfileWithPosts({
@@ -56,7 +56,7 @@ class ProfileStateNotifier extends StateNotifier<ProfileWithPosts?> {
         .select<Map<String, dynamic>>()
         .eq('id', userId)
         .single();
-    final user = UserProfile.fromJson(userData);
+    final user = Profile.fromJson(userData);
 
     final postsData = await supabase
         .from('posts')
