@@ -25,11 +25,24 @@ class ChatPage extends ConsumerWidget {
         ref.watch(chatsStateNotifierProvider(_roomId).notifier);
     if (chatsState is ChatsLoading) {}
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Chats'),
-      ),
+      appBar: _appBar(chatsState),
       body: _body(chatsState, chatsStateNotifier),
     );
+  }
+
+  AppBar _appBar(ChatsState state) {
+    if (state is ChatsEmpty) {
+      final otherUser = state.otherUser;
+      if (otherUser != null) {
+        return _userLoadedAppbar(otherUser);
+      }
+    } else if (state is ChatsLoaded) {
+      final otherUser = state.otherUser;
+      if (otherUser != null) {
+        return _userLoadedAppbar(otherUser);
+      }
+    }
+    return AppBar();
   }
 
   Widget _body(ChatsState state, ChatsStateNotifier chatsStateNotifier) {
@@ -63,6 +76,17 @@ class ChatPage extends ConsumerWidget {
       );
     }
     throw UnimplementedError('Unknown ChatsState: ${state.runtimeType}');
+  }
+
+  AppBar _userLoadedAppbar(Profile otherUser) {
+    return AppBar(
+      title: Row(
+        children: [
+          ProfileImage(user: otherUser),
+          Text(otherUser.name),
+        ],
+      ),
+    );
   }
 }
 

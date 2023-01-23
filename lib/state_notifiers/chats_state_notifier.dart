@@ -14,7 +14,11 @@ abstract class ChatsState {}
 
 class ChatsLoading extends ChatsState {}
 
-class ChatsEmpty extends ChatsState {}
+class ChatsEmpty extends ChatsState {
+  final Profile? otherUser;
+
+  ChatsEmpty(this.otherUser);
+}
 
 class ChatsLoaded extends ChatsState {
   final List<Message> messages;
@@ -53,7 +57,7 @@ class ChatsStateNotifier extends StateNotifier<ChatsState> {
         .listen((messages) {
           _messages = messages;
           if (_messages!.isEmpty) {
-            state = ChatsEmpty();
+            state = ChatsEmpty(_otherUser);
           } else {
             state = ChatsLoaded(
               messages: _messages!,
@@ -73,7 +77,7 @@ class ChatsStateNotifier extends StateNotifier<ChatsState> {
     _otherUser = Profile.fromJson(data['other_user']);
     if (_messages != null) {
       if (_messages!.isEmpty) {
-        state = ChatsEmpty();
+        state = ChatsEmpty(_otherUser);
       } else {
         state = ChatsLoaded(
           messages: _messages!,
