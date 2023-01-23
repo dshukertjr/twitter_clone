@@ -92,11 +92,13 @@ class ChatsStateNotifier extends StateNotifier<ChatsState> {
 
     _messages = _messages ?? [];
     final messages = Message(
-        id: 'new',
-        content: text,
-        roomId: _roomId,
-        createdAt: DateTime.now(),
-        userId: myUserId);
+      id: 'new',
+      content: text,
+      roomId: _roomId,
+      createdAt: DateTime.now(),
+      userId: myUserId,
+      hasBeenRead: false,
+    );
     _messages!.insert(0, messages);
     state = ChatsLoaded(messages: _messages!, otherUser: _otherUser);
     await supabase.from('messages').insert({

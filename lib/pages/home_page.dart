@@ -43,6 +43,8 @@ class _HomePageState extends ConsumerState<HomePage> {
   Widget build(BuildContext context) {
     final appAuthState = ref.watch(appAuthProvider);
     final notificationsState = ref.watch(notificationsProvider);
+    final myUserId = supabase.auth.currentUser!.id;
+    final roomsState = ref.watch(roomsStateNotifierProvider(myUserId));
 
     if (appAuthState is AppAuthProfileLoaded) {
       return Scaffold(
@@ -88,27 +90,22 @@ class _HomePageState extends ConsumerState<HomePage> {
               label: 'Search',
             ),
             BottomNavigationBarItem(
-              icon: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  const Icon(Icons.notifications_outlined),
-                  if (notificationsState is NotificationsLoaded &&
-                      notificationsState.newNotificationCount > 0)
-                    Positioned(
-                      right: -6,
-                      top: -6,
-                      child: _Badge(
-                          label: notificationsState.newNotificationCount
-                              .toString()),
-                    ),
-                ],
+              icon: _IconWithBadge(
+                iconData: Icons.notifications_outlined,
+                badgeCount: notificationsState is NotificationsLoaded
+                    ? notificationsState.newNotificationCount
+                    : 0,
               ),
               activeIcon: const Icon(Icons.notifications),
               label: 'Notifications',
             ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.email_outlined),
-              activeIcon: Icon(Icons.email),
+            BottomNavigationBarItem(
+              icon: _IconWithBadge(
+                iconData: Icons.email_outlined,
+                badgeCount:
+                    roomsState is RoomsLoaded ? roomsState.unreadCount : 0,
+              ),
+              activeIcon: const Icon(Icons.email),
               label: 'Messages',
             ),
           ],
@@ -130,6 +127,33 @@ class _HomePageState extends ConsumerState<HomePage> {
       throw UnimplementedError(
           'HomePage displayed with appAuthState: ${appAuthState.runtimeType}');
     }
+  }
+}
+
+class _IconWithBadge extends StatelessWidget {
+  const _IconWithBadge({
+    Key? key,
+    required this.iconData,
+    required this.badgeCount,
+  }) : super(key: key);
+
+  final IconData iconData;
+  final int badgeCount;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Icon(iconData),
+        if (badgeCount > 0)
+          Positioned(
+            right: -6,
+            top: -6,
+            child: _Badge(label: badgeCount.toString()),
+          ),
+      ],
+    );
   }
 }
 

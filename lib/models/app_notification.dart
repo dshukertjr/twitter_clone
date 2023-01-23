@@ -15,13 +15,13 @@ abstract class AppNotification {
   final String entityId;
 
   final DateTime createdAt;
-  final bool hasBeenSeen;
+  final bool hasBeenRead;
 
   AppNotification({
     required this.id,
     required this.entityId,
     required this.createdAt,
-    required this.hasBeenSeen,
+    required this.hasBeenRead,
   });
 
   factory AppNotification.fromJson(Map<String, dynamic> json) {
@@ -32,7 +32,7 @@ abstract class AppNotification {
         id: '',
         entityId: '',
         createdAt: DateTime.now(),
-        hasBeenSeen: false,
+        hasBeenRead: false,
       );
     }
   }
@@ -45,7 +45,7 @@ class UnknownNotification extends AppNotification {
     required super.id,
     required super.entityId,
     required super.createdAt,
-    required super.hasBeenSeen,
+    required super.hasBeenRead,
   });
 
   @override
@@ -62,7 +62,7 @@ class LikeNotification extends AppNotification {
     required super.id,
     required super.entityId,
     required super.createdAt,
-    required super.hasBeenSeen,
+    required super.hasBeenRead,
     required this.actor,
     required this.post,
   });
@@ -74,7 +74,7 @@ class LikeNotification extends AppNotification {
           id: json['id'],
           entityId: json['entity_id'],
           createdAt: DateTime.parse(json['created_at']),
-          hasBeenSeen: json['has_been_seen'],
+          hasBeenRead: json['has_been_read'],
         );
 
   @override
@@ -83,7 +83,7 @@ class LikeNotification extends AppNotification {
       id: id,
       entityId: entityId,
       createdAt: createdAt,
-      hasBeenSeen: true,
+      hasBeenRead: true,
       actor: actor,
       post: post,
     );

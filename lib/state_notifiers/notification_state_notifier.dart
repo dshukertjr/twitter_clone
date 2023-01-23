@@ -45,8 +45,9 @@ class NotificationsNotifier extends StateNotifier<NotificationsState> {
       state = EmptyNotification();
     } else {
       final newNotificationCount = _notifications
-          .where((notification) => !notification.hasBeenSeen)
+          .where((notification) => !notification.hasBeenRead)
           .length;
+
       state = NotificationsLoaded(
         notifications: _notifications,
         newNotificationCount: newNotificationCount,
@@ -60,7 +61,7 @@ class NotificationsNotifier extends StateNotifier<NotificationsState> {
     state = NotificationsLoaded(
         notifications: _notifications, newNotificationCount: 0);
     await supabase.from('notifications').upsert(_notifications
-        .where((notification) => !notification.hasBeenSeen)
+        .where((notification) => !notification.hasBeenRead)
         .map((notification) => {'id': notification.id, 'hasBeenSeen': true}));
   }
 

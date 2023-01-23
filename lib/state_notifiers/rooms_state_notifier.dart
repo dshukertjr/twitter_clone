@@ -20,8 +20,12 @@ class RoomsEmpty extends RoomsState {}
 
 class RoomsLoaded extends RoomsState {
   final List<Room> rooms;
+  final int unreadCount;
 
-  RoomsLoaded(this.rooms);
+  RoomsLoaded(
+    this.rooms, {
+    required this.unreadCount,
+  });
 }
 
 class RoomsError extends RoomsState {
@@ -65,7 +69,9 @@ class RoomsStateNotifier extends StateNotifier<RoomsState> {
         _getNewestMessage(roomId: room.id);
         await _getProfile(room.otherUserId);
       }
-      state = RoomsLoaded(_rooms);
+      final unreadCount =
+          _rooms.where((room) => room.lastMessage?.isUnread ?? false).length;
+      state = RoomsLoaded(_rooms, unreadCount: unreadCount);
     }, onError: (error) {
       state = RoomsError('Error loading rooms');
     });
@@ -111,7 +117,10 @@ class RoomsStateNotifier extends StateNotifier<RoomsState> {
                 b.lastMessage != null ? b.lastMessage!.createdAt : b.createdAt;
             return bTimeStamp.compareTo(aTimeStamp);
           });
-          state = RoomsLoaded(_rooms);
+          final unreadCount = _rooms
+              .where((room) => room.lastMessage?.isUnread ?? false)
+              .length;
+          state = RoomsLoaded(_rooms, unreadCount: unreadCount);
         });
   }
 
@@ -119,7 +128,9 @@ class RoomsStateNotifier extends StateNotifier<RoomsState> {
   Future<String> createRoom(String otherUserId) async {
     final data = await supabase
         .rpc('create_new_room', params: {'other_user_id': otherUserId});
-    state = RoomsLoaded(_rooms);
+    final unreadCount =
+        _rooms.where((room) => room.lastMessage?.isUnread ?? false).length;
+    state = RoomsLoaded(_rooms, unreadCount: unreadCount);
     return data as String;
   }
 

@@ -7,6 +7,7 @@ class Message {
     required this.userId,
     required this.content,
     required this.createdAt,
+    required this.hasBeenRead,
   });
 
   /// ID of the message
@@ -24,10 +25,18 @@ class Message {
   /// Date and time when the message was created
   final DateTime createdAt;
 
+  /// Whether or not the message has been read
+  final bool hasBeenRead;
+
   /// Whether the message is sent by the user or not.
   bool get isMine {
     final myUserId = supabase.auth.currentUser?.id;
     return myUserId == userId;
+  }
+
+  /// The message is sent by another user and it is unread
+  bool get isUnread {
+    return !isMine && !hasBeenRead;
   }
 
   Map<String, dynamic> toMap() {
@@ -43,7 +52,8 @@ class Message {
         roomId = map['room_id'],
         userId = map['profile_id'],
         content = map['content'],
-        createdAt = DateTime.parse(map['created_at']);
+        createdAt = DateTime.parse(map['created_at']),
+        hasBeenRead = map['has_been_read'];
 
   Message copyWith({
     String? id,
@@ -51,6 +61,7 @@ class Message {
     String? roomId,
     String? text,
     DateTime? createdAt,
+    bool? hasBeenRead,
   }) {
     return Message(
       id: id ?? this.id,
@@ -58,6 +69,7 @@ class Message {
       roomId: roomId ?? this.roomId,
       content: text ?? content,
       createdAt: createdAt ?? this.createdAt,
+      hasBeenRead: hasBeenRead ?? this.hasBeenRead,
     );
   }
 }
