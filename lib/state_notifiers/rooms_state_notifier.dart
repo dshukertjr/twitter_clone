@@ -97,12 +97,7 @@ class RoomsStateNotifier extends StateNotifier<RoomsState> {
         .order('created_at')
         .limit(1)
         .map<Message?>(
-          (data) => data.isEmpty
-              ? null
-              : Message.fromMap(
-                  map: data.first,
-                  myUserId: _myUserId,
-                ),
+          (data) => data.isEmpty ? null : Message.fromMap(data.first),
         )
         .listen((message) {
           final index = _rooms.indexWhere((room) => room.id == roomId);

@@ -63,7 +63,7 @@ class TimelineStateNotifier extends StateNotifier<Set<Post>?> {
     final data = await supabase
         .from('posts')
         .select<List<Map<String, dynamic>>>(
-            '*, user:users(*), like_count:likes(count), my_like:likes(count)')
+            '*, user:profiles(*), like_count:likes(count), my_like:likes(count)')
         .eq('my_like.user_id', supabase.auth.currentUser!.id)
         .order('created_at')
         .limit(20);

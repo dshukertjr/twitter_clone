@@ -1,3 +1,5 @@
+import 'package:twitter_clone/constants.dart';
+
 class Message {
   Message({
     required this.id,
@@ -5,7 +7,6 @@ class Message {
     required this.userId,
     required this.content,
     required this.createdAt,
-    required this.isMine,
   });
 
   /// ID of the message
@@ -24,7 +25,10 @@ class Message {
   final DateTime createdAt;
 
   /// Whether the message is sent by the user or not.
-  final bool isMine;
+  bool get isMine {
+    final myUserId = supabase.auth.currentUser?.id;
+    return myUserId == userId;
+  }
 
   Map<String, dynamic> toMap() {
     return {
@@ -34,15 +38,12 @@ class Message {
     };
   }
 
-  Message.fromMap({
-    required Map<String, dynamic> map,
-    required String myUserId,
-  })  : id = map['id'],
+  Message.fromMap(Map<String, dynamic> map)
+      : id = map['id'],
         roomId = map['room_id'],
         userId = map['profile_id'],
         content = map['content'],
-        createdAt = DateTime.parse(map['created_at']),
-        isMine = myUserId == map['user_id'];
+        createdAt = DateTime.parse(map['created_at']);
 
   Message copyWith({
     String? id,
@@ -50,7 +51,6 @@ class Message {
     String? roomId,
     String? text,
     DateTime? createdAt,
-    bool? isMine,
   }) {
     return Message(
       id: id ?? this.id,
@@ -58,7 +58,6 @@ class Message {
       roomId: roomId ?? this.roomId,
       content: text ?? content,
       createdAt: createdAt ?? this.createdAt,
-      isMine: isMine ?? this.isMine,
     );
   }
 }

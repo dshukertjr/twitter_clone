@@ -30,7 +30,7 @@ class AppAuthStateNotifier extends StateNotifier<AppAuthState> {
       if (session != null) {
         state = AppAuthSignedIn();
         final data = await supabase
-            .from('users')
+            .from('profiles')
             .select()
             .eq('id', session.user.id)
             .single();

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:timeago/timeago.dart';
 import 'package:twitter_clone/components/profile_image.dart';
 import 'package:twitter_clone/models/post.dart';
 import 'package:twitter_clone/state_notifiers/posts_state_notifier.dart';

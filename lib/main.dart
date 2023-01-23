@@ -8,9 +8,9 @@ import 'package:twitter_clone/state_notifiers/auth_state_notifier.dart';
 
 Future<void> main() async {
   await Supabase.initialize(
-    url: 'https://frgfqtkcwfuwkpzmtijh.supabase.co',
+    url: 'https://ocirvypwbozqgpnzmlei.supabase.co',
     anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyZ2ZxdGtjd2Z1d2twem10aWpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzQzMDY2MzMsImV4cCI6MTk4OTg4MjYzM30.v9afR4Bhmd-SdypDujoqtMWOJ1PosmNQpfzkFnGL-3Y',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jaXJ2eXB3Ym96cWdwbnptbGVpIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzQ0NjYzNjMsImV4cCI6MTk5MDA0MjM2M30.io9KXS7nbXexVQBhKQ7QeYtn16trAz4Nt8HEJxdR4y4',
   );
   runApp(const ProviderScope(child: MyApp()));
 }
