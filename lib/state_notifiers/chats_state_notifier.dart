@@ -4,10 +4,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:twitter_clone/constants.dart';
 import 'package:twitter_clone/models/message.dart';
 import 'package:twitter_clone/models/profile.dart';
+import 'package:twitter_clone/state_notifiers/rooms_state_notifier.dart';
 
 final chatsStateNotifierProvider = StateNotifierProvider.autoDispose
     .family<ChatsStateNotifier, ChatsState, String>((ref, roomId) {
-  return ChatsStateNotifier(roomId: roomId)..loadMessages();
+  final myUserId = supabase.auth.currentUser!.id;
+  final roomsStateNotifier =
+      ref.watch(roomsStateNotifierProvider(myUserId).notifier);
+
+  return ChatsStateNotifier(roomId: roomId)..loadMessages(roomsStateNotifier);
 });
 
 abstract class ChatsState {}
@@ -48,7 +53,8 @@ class ChatsStateNotifier extends StateNotifier<ChatsState> {
 
   late final StreamSubscription<List<Message>> _messagesSubscription;
 
-  Future<void> loadMessages() async {
+  Future<void> loadMessages(RoomsStateNotifier roomsStateNotifier) async {
+    roomsStateNotifier.readMessages();
     _messagesSubscription = supabase
         .from('messages')
         .stream(primaryKey: ['id'])

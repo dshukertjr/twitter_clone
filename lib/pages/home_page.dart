@@ -66,6 +66,11 @@ class _HomePageState extends ConsumerState<HomePage> {
     final myUserId = supabase.auth.currentUser!.id;
     final roomsState = ref.watch(roomsStateNotifierProvider(myUserId));
 
+    final notificationsStateNotifier =
+        ref.watch(notificationsProvider.notifier);
+    final roomsStateNotifier =
+        ref.watch(roomsStateNotifierProvider(myUserId).notifier);
+
     if (appAuthState is AppAuthProfileLoaded) {
       return Scaffold(
         appBar: AppBar(
@@ -92,9 +97,13 @@ class _HomePageState extends ConsumerState<HomePage> {
           type: BottomNavigationBarType.fixed,
           currentIndex: _currentTab.index,
           onTap: (value) {
+            final newTab = HomeTab.values[value];
             setState(() {
-              _currentTab = HomeTab.values[value];
+              _currentTab = newTab;
             });
+            if (newTab == HomeTab.notifications) {
+              notificationsStateNotifier.readNotification();
+            }
           },
           showSelectedLabels: false,
           showUnselectedLabels: false,

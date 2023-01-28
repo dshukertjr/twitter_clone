@@ -205,7 +205,14 @@ class _ChatBubble extends StatelessWidget {
                 : Theme.of(context).primaryColor,
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Text(message.content),
+          child: Text(
+            message.content,
+            style: TextStyle(
+              color: message.isMine
+                  ? Colors.black
+                  : Theme.of(context).colorScheme.onPrimary,
+            ),
+          ),
         ),
       ),
       const SizedBox(width: 12),

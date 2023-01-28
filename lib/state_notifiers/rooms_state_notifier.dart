@@ -136,6 +136,12 @@ class RoomsStateNotifier extends StateNotifier<RoomsState> {
     return data as String;
   }
 
+  Future<void> readMessages() async {
+    await supabase
+        .from('messages')
+        .update({'has_been_read': true}).eq('has_been_read', false);
+  }
+
   @override
   void dispose() {
     _rawRoomsSubscription?.cancel();

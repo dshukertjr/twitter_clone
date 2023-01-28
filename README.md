@@ -81,6 +81,7 @@ create table if not exists public.notifications (
 create or replace view notifications_view
     with (security_invoker = on) as
         select 
+            n.id,
             n.type,
             n.entity_id,
             n.actor_id,
@@ -92,7 +93,7 @@ create or replace view notifications_view
                         'actor', jsonb_build_object(
                             'id', u.id,
                             'name', u.name,
-                            'image_url', u.image_url
+                            'image_path', u.image_path
                         ),
                         'post', jsonb_build_object(
                             'body', p.body,
@@ -240,6 +241,7 @@ create policy "Users can delete own likes." on public.likes for delete using (au
 
 alter table public.notifications enable row level security;
 create policy "Notifications are viewable by the user" on public.notifications for select using (auth.uid() = notifier_id);
+create policy "Users can update notification read status" on public.notifications for update using (auth.uid() = notifier_id) with check (auth.uid() = notifier_id);
 
 alter table public.rooms enable row level security;
 create policy "Users can view rooms that they have joined" on public.rooms for select using (is_room_participant(id));
@@ -252,6 +254,7 @@ create policy "Participants of the room can view other participants." on public.
 alter table public.messages enable row level security;
 create policy "Users can view messages on rooms they are in." on public.messages for select using (is_room_participant(room_id));
 create policy "Users can insert messages on rooms they are in." on public.messages for insert with check (is_room_participant(room_id) and user_id = auth.uid());
+create policy "Users can update read status" on public.messages for update using (is_room_participant(room_id));
 
 -- Configure storage
 insert into storage.buckets (id, name, public) values ('posts', 'posts', true);

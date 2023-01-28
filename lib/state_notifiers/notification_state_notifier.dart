@@ -60,9 +60,9 @@ class NotificationsNotifier extends StateNotifier<NotificationsState> {
         _notifications.map((notification) => notification.read()).toList();
     state = NotificationsLoaded(
         notifications: _notifications, newNotificationCount: 0);
-    await supabase.from('notifications').upsert(_notifications
-        .where((notification) => !notification.hasBeenRead)
-        .map((notification) => {'id': notification.id, 'hasBeenSeen': true}));
+    await supabase
+        .from('notifications')
+        .update({'has_been_read': true}).eq('has_been_read', false);
   }
 
   void _setupRealtimeListener() {

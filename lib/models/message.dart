@@ -50,7 +50,7 @@ class Message {
   Message.fromMap(Map<String, dynamic> map)
       : id = map['id'],
         roomId = map['room_id'],
-        userId = map['profile_id'],
+        userId = map['user_id'],
         content = map['content'],
         createdAt = DateTime.parse(map['created_at']),
         hasBeenRead = map['has_been_read'];
