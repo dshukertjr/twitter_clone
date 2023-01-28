@@ -1,3 +1,4 @@
+import 'package:twitter_clone/constants.dart';
 import 'package:twitter_clone/models/profile.dart';
 
 class Post {
@@ -25,7 +26,9 @@ class Post {
         createdAt = DateTime.parse(json['created_at']),
         likeCount = json['like_count'][0]['count'],
         haveLiked = json['my_like'][0]['count'] > 0,
-        imageUrl = json['image_url'],
+        imageUrl = json['image_path'] == null
+            ? null
+            : supabase.storage.from('posts').getPublicUrl(json['image_path']),
         profile = Profile.fromJson(json['user']);
 
   Post like() {

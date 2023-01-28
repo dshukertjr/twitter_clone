@@ -13,6 +13,10 @@ class ProfileImage extends StatelessWidget {
     this.size = 40,
   });
 
+  ProfileImage.empty({super.key, this.size = 40})
+      : user = Profile(
+            id: 'id', name: 'name', imageUrl: null, description: 'description');
+
   @override
   Widget build(BuildContext context) {
     return ClipOval(

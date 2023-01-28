@@ -52,7 +52,7 @@ class ProfileStateNotifier extends StateNotifier<ProfileWithPosts?> {
 
   Future<void> loadProfile(String userId) async {
     final userData = await supabase
-        .from('users')
+        .from('profiles')
         .select<Map<String, dynamic>>()
         .eq('id', userId)
         .single();
@@ -61,7 +61,7 @@ class ProfileStateNotifier extends StateNotifier<ProfileWithPosts?> {
     final postsData = await supabase
         .from('posts')
         .select<List<Map<String, dynamic>>>(
-            '*, user:users(*), like_count:likes(count), my_like:likes(count)')
+            '*, user:profiles(*), like_count:likes(count), my_like:likes(count)')
         .eq('my_like.user_id', supabase.auth.currentUser!.id)
         .eq('user_id', userId)
         .order('created_at')

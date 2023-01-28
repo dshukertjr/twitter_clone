@@ -29,7 +29,7 @@ class SearchStateNotifier extends StateNotifier<SearchState> {
     final data = await supabase
         .from('posts')
         .select<List<Map<String, dynamic>>>(
-            '*, user:users(*), like_count:likes(count), my_like:likes(count)')
+            '*, user:profiles(*), like_count:likes(count), my_like:likes(count)')
         .eq('my_like.user_id', supabase.auth.currentUser!.id)
         .textSearch('body', query)
         .order('created_at')

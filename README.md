@@ -19,7 +19,7 @@ create table if not exists public.posts (
     user_id uuid references public.profiles(id) on delete cascade not null default auth.uid(),
     created_at timestamp with time zone default timezone('utc' :: text, now()) not null,
     body text not null,
-    image_url text,
+    image_path text,
     constraint tweet_length_validation check (char_length(body) <= 280)
 );
 
@@ -252,4 +252,9 @@ create policy "Participants of the room can view other participants." on public.
 alter table public.messages enable row level security;
 create policy "Users can view messages on rooms they are in." on public.messages for select using (is_room_participant(room_id));
 create policy "Users can insert messages on rooms they are in." on public.messages for insert with check (is_room_participant(room_id) and user_id = auth.uid());
+
+-- Configure storage
+insert into storage.buckets (id, name, public) values ('posts', 'posts', true);
+insert into storage.buckets (id, name, public) values ('profiles', 'profiles', true);
+create policy "uid has to be the first element in path_tokens" on storage.objects for insert with check (auth.uid()::text = path_tokens[1] and array_length(path_tokens, 1) = 2);
 ```

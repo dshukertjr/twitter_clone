@@ -113,7 +113,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         floatingActionButton: FloatingActionButton(
           onPressed: () {
             if (_currentTab == HomeTab.messages) {
-// TODO handle composing new messages
+              // TODO handle composing new messages
             } else {
               Navigator.of(context).push(ComposePostPage.route());
             }
@@ -150,58 +150,12 @@ class _IconWithBadge extends StatelessWidget {
           Positioned(
             right: -6,
             top: -6,
-            child: _Badge(label: badgeCount.toString()),
+            child: Badge.count(
+              count: badgeCount,
+              backgroundColor: Theme.of(context).primaryColor,
+            ),
           ),
       ],
-    );
-  }
-}
-
-class _Badge extends StatelessWidget {
-  const _Badge({
-    Key? key,
-    required this.label,
-  }) : super(key: key);
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: const BorderRadius.all(
-          Radius.circular(20),
-        ),
-        color: Theme.of(context).scaffoldBackgroundColor,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(1.5),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            borderRadius: const BorderRadius.all(
-              Radius.circular(20),
-            ),
-            color: Theme.of(context).primaryColor,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(1.5),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                minWidth: 10,
-              ),
-              child: Text(
-                label,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onPrimary,
-                  fontSize: 8,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
@@ -321,11 +275,11 @@ class _NotificationTab extends ConsumerWidget {
                         const SizedBox(height: 4),
                         RichText(
                           text: TextSpan(
-                              style: Theme.of(context).textTheme.bodyText1,
+                              style: Theme.of(context).textTheme.bodyLarge,
                               text: notification.actor.name,
                               children: [
                                 TextSpan(
-                                  style: Theme.of(context).textTheme.bodyText2,
+                                  style: Theme.of(context).textTheme.bodyMedium,
                                   text: ' liked your Tweet',
                                 ),
                               ]),

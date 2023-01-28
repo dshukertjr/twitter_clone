@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:twitter_clone/constants.dart';
 import 'package:twitter_clone/models/post.dart';
 import 'package:twitter_clone/state_notifiers/posts_state_notifier.dart';
+import 'package:uuid/uuid.dart';
 
 /// Provider that returns the timeline state for the UI
 final timelineStateProvider = Provider<TimelineState>((ref) {
@@ -73,18 +76,28 @@ class TimelineStateNotifier extends StateNotifier<Set<Post>?> {
     _postsStateNotifier.addPosts(_posts);
   }
 
-  Future<void> createPost(String body) async {
-    final insertedData = await supabase
-        .from('posts')
-        .insert({'body': body})
-        .select<Map<String, dynamic>>()
-        .single();
+  Future<void> createPost({
+    required String body,
+    required File? imageFile,
+  }) async {
+    final postId = const Uuid().v4();
+    String? imagePath;
+    if (imageFile != null) {
+      final myUserId = supabase.auth.currentUser!.id;
+      imagePath = '$myUserId/$postId.${imageFile.path.split('.').last}';
+      await supabase.storage.from('posts').upload(imagePath, imageFile);
+    }
+    await supabase.from('posts').insert({
+      'id': postId,
+      'body': body,
+      if (imagePath != null) 'image_path': imagePath,
+    });
     final data = await supabase
         .from('posts')
         .select<Map<String, dynamic>>(
-            '*, user:users(*), like_count:likes(count), my_like:likes(count)')
+            '*, user:profiles(*), like_count:likes(count), my_like:likes(count)')
         .match({
-      'id': insertedData['id'],
+      'id': postId,
       'my_like.user_id': supabase.auth.currentUser!.id,
     }).single();
     final newPost = Post.fromJson(data);
