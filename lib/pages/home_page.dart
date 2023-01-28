@@ -11,6 +11,7 @@ import 'package:twitter_clone/pages/compose_post_page.dart';
 import 'package:twitter_clone/state_notifiers/auth_state_notifier.dart';
 import 'package:twitter_clone/state_notifiers/notification_state_notifier.dart';
 import 'package:twitter_clone/state_notifiers/rooms_state_notifier.dart';
+import 'package:twitter_clone/state_notifiers/search_state_notifier.dart';
 import 'package:twitter_clone/state_notifiers/timeline_state_notifier.dart';
 
 enum HomeTab { timeline, search, notifications, messages }
@@ -42,7 +43,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             onTap: () async {
               await showSearch(
                 context: context,
-                delegate: CustomSearchDelegate(),
+                delegate: _CustomSearchDelegate(),
               );
             },
             child: const Padding(
@@ -215,7 +216,7 @@ class _TimelineTab extends ConsumerWidget {
 
     return RefreshIndicator(
       onRefresh: () async {
-        postsStateNotifier.getPosts();
+        await postsStateNotifier.getPosts();
       },
       child: _timeline(postsState),
     );
@@ -379,31 +380,20 @@ class _MessagesTab extends ConsumerWidget {
   }
 }
 
-class CustomSearchDelegate extends SearchDelegate {
-  Future<List<Post>> search() async {
-    final List data = await supabase.rpc('search_posts', params: {
-      'query': query,
-    });
-    return data.map(Post.fromSearchResult).toList();
-  }
-
+class _CustomSearchDelegate extends SearchDelegate {
   @override
   Widget buildResults(BuildContext context) {
-    return FutureBuilder<List<Post>>(
-      future: search(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
-          return preloader;
-        }
-        final posts = snapshot.data!;
-        return _Timeline(posts: posts);
-      },
-    );
+    return _SearchResults(query);
   }
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    return Container();
+    return _Suggestions(
+      onSuggestionTap: (suggestion) {
+        query = suggestion;
+        showResults(context);
+      },
+    );
   }
 
   @override
@@ -419,5 +409,47 @@ class CustomSearchDelegate extends SearchDelegate {
   @override
   Widget? buildLeading(BuildContext context) {
     return null;
+  }
+}
+
+class _SearchResults extends ConsumerWidget {
+  final String query;
+
+  const _SearchResults(this.query);
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final searchPostsState = ref.watch(searchStateProvider(query));
+    if (searchPostsState is SearchLoaded) {
+      final posts = searchPostsState.posts;
+      return _Timeline(posts: posts);
+    } else {
+      return preloader;
+    }
+  }
+}
+
+class _Suggestions extends ConsumerWidget {
+  final void Function(String query) onSuggestionTap;
+
+  const _Suggestions({required this.onSuggestionTap});
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final suggestions = ref.watch(suggestionStateNotifierProvider);
+    if (suggestions == null) {
+      return preloader;
+    } else {
+      return ListView.builder(
+        itemCount: suggestions.length,
+        itemBuilder: (context, index) {
+          final suggestion = suggestions[index];
+          return ListTile(
+            onTap: () {
+              onSuggestionTap(suggestion);
+            },
+            title: Text(suggestion),
+          );
+        },
+      );
+    }
   }
 }

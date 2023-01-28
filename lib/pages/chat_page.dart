@@ -119,9 +119,9 @@ class _MessageBarState extends State<_MessageBar> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Material(
-        color: Theme.of(context).cardColor,
+    return Material(
+      color: Theme.of(context).cardColor,
+      child: SafeArea(
         child: Padding(
           padding: EdgeInsets.only(
             top: 8,

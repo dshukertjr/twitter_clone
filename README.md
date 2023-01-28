@@ -55,6 +55,14 @@ create table if not exists public.room_participants (
 );
 comment on table public.room_participants is 'Relational table of users and rooms.';
 
+create table if not exists public.suggestions (
+    user_id uuid not null default auth.uid() references public.profiles(id) on delete cascade,
+    query text not null,
+    created_at timestamp with time zone default timezone('utc' :: text, now()) not null,
+    primary key (user_id, query)
+);
+comment on table public.suggestions is 'Holds the past search query for users';
+
 -- enum for different types of notifications
 create type notification_type as enum ('like');
 
@@ -242,6 +250,11 @@ create policy "Users can delete own likes." on public.likes for delete using (au
 alter table public.notifications enable row level security;
 create policy "Notifications are viewable by the user" on public.notifications for select using (auth.uid() = notifier_id);
 create policy "Users can update notification read status" on public.notifications for update using (auth.uid() = notifier_id) with check (auth.uid() = notifier_id);
+
+alter table public.suggestions enable row level security;
+create policy "Suggestions are viewable by the user" on public.suggestions for select using (auth.uid() = user_id);
+create policy "Users can insert their own suggestion" on public.suggestions for insert with check (auth.uid() = user_id);
+create policy "Suggestions can be updated by the user" on public.suggestions for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 alter table public.rooms enable row level security;
 create policy "Users can view rooms that they have joined" on public.rooms for select using (is_room_participant(id));
