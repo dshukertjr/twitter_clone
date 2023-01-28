@@ -381,8 +381,9 @@ class _MessagesTab extends ConsumerWidget {
 
 class CustomSearchDelegate extends SearchDelegate {
   Future<List<Post>> search() async {
-    final List data =
-        await supabase.rpc('search_posts', params: {'query': query});
+    final List data = await supabase.rpc('search_posts', params: {
+      'query': query,
+    });
     return data.map(Post.fromSearchResult).toList();
   }
 
