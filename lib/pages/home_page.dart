@@ -345,11 +345,9 @@ class _MessagesTab extends ConsumerWidget {
 
           return ListTile(
             onTap: () => Navigator.of(context).push(ChatPage.route(room.id)),
-            leading: CircleAvatar(
-              child: otherUser == null
-                  ? preloader
-                  : Text(otherUser.name.substring(0, 2)),
-            ),
+            leading: room.otherUser == null
+                ? ProfileImage.empty()
+                : ProfileImage(user: room.otherUser!),
             title: Text(otherUser == null ? 'Loading...' : otherUser.name),
             subtitle: room.lastMessage != null
                 ? Text(
