@@ -79,22 +79,12 @@ class ProfilePage extends ConsumerWidget {
                               child: const Text('Edit Profile'),
                             )
                           else
-                            Material(
-                              color: Theme.of(context).primaryColor,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(100),
-                              ),
-                              child: IconButton(
-                                color: Colors.white,
-                                onPressed: () async {
-                                  final roomId = await roomsStateNotifier
-                                      .createRoom(_userId);
-                                  Navigator.of(context)
-                                      .push(ChatPage.route(roomId));
+                            OutlinedButton(
+                                onPressed: () {
+                                  throw UnimplementedError(
+                                      'Follow feature is unimplemented');
                                 },
-                                icon: const Icon(Icons.email_outlined),
-                              ),
-                            ),
+                                child: const Text('Follow'))
                         ],
                       ),
                       spacer,
@@ -105,7 +95,10 @@ class ProfilePage extends ConsumerWidget {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      Text(user.description ?? ''),
+                      spacer,
+                      if (user.description != null &&
+                          user.description!.isNotEmpty)
+                        Text(user.description ?? ''),
                     ],
                   ),
                 ),
@@ -121,6 +114,15 @@ class ProfilePage extends ConsumerWidget {
                 ),
               ],
             ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final roomId = await roomsStateNotifier.createRoom(_userId);
+          if (context.mounted) {
+            Navigator.of(context).push(ChatPage.route(roomId));
+          }
+        },
+        child: const Icon(Icons.email_outlined),
+      ),
     );
   }
 }

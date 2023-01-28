@@ -59,6 +59,22 @@ class MyApp extends ConsumerWidget {
             ),
           ),
         ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: ButtonStyle(
+            shape: MaterialStateProperty.all<OutlinedBorder>(
+              const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(20)),
+              ),
+            ),
+            side: MaterialStateProperty.all(
+              const BorderSide(color: Colors.grey, width: 1),
+            ),
+            foregroundColor: MaterialStateProperty.all(Colors.black),
+            padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+            ),
+          ),
+        ),
       ),
       darkTheme: ThemeData.dark().copyWith(
         appBarTheme: const AppBarTheme(
@@ -80,6 +96,22 @@ class MyApp extends ConsumerWidget {
             ),
             padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
               const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+            ),
+          ),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: ButtonStyle(
+            shape: MaterialStateProperty.all<OutlinedBorder>(
+              const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(20)),
+              ),
+            ),
+            side: MaterialStateProperty.all(
+              const BorderSide(color: Colors.grey, width: 1),
+            ),
+            foregroundColor: MaterialStateProperty.all(Colors.white),
+            padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
             ),
           ),
         ),

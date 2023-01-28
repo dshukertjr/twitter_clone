@@ -63,6 +63,14 @@ create table if not exists public.suggestions (
 );
 comment on table public.suggestions is 'Holds the past search query for users';
 
+create table if not exists public.follows (
+    follower_id uuid not null references public.profiles(id) on delete cascade,
+    following_id uuid default auth.uid() references public.profiles(id) on delete cascade,
+    created_at timestamp with time zone default timezone('utc' :: text, now()) not null,
+    primary key (follower_id, following_id)
+);
+comment on table public.follows is 'Holds who is following who';
+
 -- enum for different types of notifications
 create type notification_type as enum ('like');
 
@@ -255,6 +263,11 @@ alter table public.suggestions enable row level security;
 create policy "Suggestions are viewable by the user" on public.suggestions for select using (auth.uid() = user_id);
 create policy "Users can insert their own suggestion" on public.suggestions for insert with check (auth.uid() = user_id);
 create policy "Suggestions can be updated by the user" on public.suggestions for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+alter table public.follows enable row level security;
+create policy "Follow information is public" on public.follows for select using (true);
+create policy "User can insert new follow" on public.follows for insert with check (following_id = auth.uid());
+create policy "User can unfollow" on public.follows for delete using (following_id = auth.uid());
 
 alter table public.rooms enable row level security;
 create policy "Users can view rooms that they have joined" on public.rooms for select using (is_room_participant(id));
