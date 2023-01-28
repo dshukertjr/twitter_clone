@@ -7,7 +7,7 @@ import 'package:twitter_clone/models/profile.dart';
 
 final chatsStateNotifierProvider = StateNotifierProvider.autoDispose
     .family<ChatsStateNotifier, ChatsState, String>((ref, roomId) {
-  return ChatsStateNotifier(roomId: roomId);
+  return ChatsStateNotifier(roomId: roomId)..loadMessages();
 });
 
 abstract class ChatsState {}

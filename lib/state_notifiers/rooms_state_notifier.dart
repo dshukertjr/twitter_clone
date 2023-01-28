@@ -125,6 +125,8 @@ class RoomsStateNotifier extends StateNotifier<RoomsState> {
   }
 
   /// Creates or returns an existing roomID of both participants
+  ///
+  /// Returns the room ID of the created room. It will return the room ID if a room already existed
   Future<String> createRoom(String otherUserId) async {
     final data = await supabase
         .rpc('create_new_room', params: {'other_user_id': otherUserId});

@@ -49,7 +49,16 @@ class ChatPage extends ConsumerWidget {
     if (state is ChatsLoading) {
       return preloader;
     } else if (state is ChatsEmpty) {
-      return const Center(child: Text('Start talking to someone!'));
+      return Column(
+        children: [
+          const Expanded(
+            child: Center(
+              child: Text('Start talking to someone!'),
+            ),
+          ),
+          _MessageBar(chatsStateNotifier: chatsStateNotifier),
+        ],
+      );
     } else if (state is ChatsError) {
       return Center(child: Text(state.message));
     } else if (state is ChatsLoaded) {
@@ -83,6 +92,7 @@ class ChatPage extends ConsumerWidget {
       title: Row(
         children: [
           ProfileImage(user: otherUser),
+          spacer,
           Text(otherUser.name),
         ],
       ),
@@ -109,36 +119,38 @@ class _MessageBarState extends State<_MessageBar> {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Theme.of(context).cardColor,
-      child: Padding(
-        padding: EdgeInsets.only(
-          top: 8,
-          left: 8,
-          right: 8,
-          bottom: MediaQuery.of(context).padding.bottom,
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: TextFormField(
-                keyboardType: TextInputType.text,
-                maxLines: null,
-                autofocus: true,
-                controller: _textController,
-                decoration: const InputDecoration(
-                  hintText: 'Type a message',
-                  border: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  contentPadding: EdgeInsets.all(8),
+    return SafeArea(
+      child: Material(
+        color: Theme.of(context).cardColor,
+        child: Padding(
+          padding: EdgeInsets.only(
+            top: 8,
+            left: 8,
+            right: 8,
+            bottom: MediaQuery.of(context).padding.bottom,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextFormField(
+                  keyboardType: TextInputType.text,
+                  maxLines: null,
+                  autofocus: true,
+                  controller: _textController,
+                  decoration: const InputDecoration(
+                    hintText: 'Type a message',
+                    border: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    contentPadding: EdgeInsets.all(8),
+                  ),
                 ),
               ),
-            ),
-            TextButton(
-              onPressed: () => _submitMessage(),
-              child: const Text('Send'),
-            ),
-          ],
+              TextButton(
+                onPressed: () => _submitMessage(),
+                child: const Text('Send'),
+              ),
+            ],
+          ),
         ),
       ),
     );

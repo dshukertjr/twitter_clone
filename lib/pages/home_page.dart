@@ -52,8 +52,10 @@ class _HomePageState extends ConsumerState<HomePage> {
           ),
         ),
       );
-    } else {
+    } else if (_currentTab == HomeTab.notifications) {
       return const Text('Notifications');
+    } else {
+      return const Text('Messages');
     }
   }
 

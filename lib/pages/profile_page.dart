@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:twitter_clone/components/post_cell.dart';
 import 'package:twitter_clone/components/profile_image.dart';
 import 'package:twitter_clone/constants.dart';
+import 'package:twitter_clone/pages/chat_page.dart';
 import 'package:twitter_clone/pages/edit_profile_page.dart';
 import 'package:twitter_clone/state_notifiers/profile_state_notifier.dart';
+import 'package:twitter_clone/state_notifiers/rooms_state_notifier.dart';
 
 class ProfilePage extends ConsumerWidget {
   static Route<void> route(String userId) {
@@ -25,8 +27,11 @@ class ProfilePage extends ConsumerWidget {
     final posts = profileWithPosts?.posts;
     final user = profileWithPosts?.user;
 
-    final myUserId = supabase.auth.currentUser?.id;
+    final myUserId = supabase.auth.currentUser!.id;
     final isMyProfile = myUserId == _userId;
+
+    final roomsStateNotifier =
+        ref.watch(roomsStateNotifierProvider(myUserId).notifier);
     return Scaffold(
       appBar: AppBar(),
       body: profileWithPosts == null
@@ -45,31 +50,51 @@ class ProfilePage extends ConsumerWidget {
                             user: user!,
                             size: 60,
                           ),
-                          OutlinedButton(
-                            style: ButtonStyle(
-                              shape: MaterialStateProperty.all<OutlinedBorder>(
-                                const RoundedRectangleBorder(
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(20)),
+                          if (isMyProfile)
+                            OutlinedButton(
+                              style: ButtonStyle(
+                                shape:
+                                    MaterialStateProperty.all<OutlinedBorder>(
+                                  const RoundedRectangleBorder(
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(20)),
+                                  ),
+                                ),
+                                side: MaterialStateProperty.all<BorderSide>(
+                                  const BorderSide(
+                                      width: 1, color: Colors.grey),
+                                ),
+                                foregroundColor: MaterialStateColor.resolveWith(
+                                    (states) => Colors.black),
+                                padding: MaterialStateProperty.all<
+                                    EdgeInsetsGeometry>(
+                                  const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 0),
                                 ),
                               ),
-                              side: MaterialStateProperty.all<BorderSide>(
-                                const BorderSide(width: 1, color: Colors.grey),
+                              onPressed: () {
+                                Navigator.of(context)
+                                    .push(EditProfilePage.route());
+                              },
+                              child: const Text('Edit Profile'),
+                            )
+                          else
+                            Material(
+                              color: Theme.of(context).primaryColor,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(100),
                               ),
-                              foregroundColor: MaterialStateColor.resolveWith(
-                                  (states) => Colors.black),
-                              padding:
-                                  MaterialStateProperty.all<EdgeInsetsGeometry>(
-                                const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 0),
+                              child: IconButton(
+                                color: Colors.white,
+                                onPressed: () async {
+                                  final roomId = await roomsStateNotifier
+                                      .createRoom(_userId);
+                                  Navigator.of(context)
+                                      .push(ChatPage.route(roomId));
+                                },
+                                icon: const Icon(Icons.email_outlined),
                               ),
                             ),
-                            onPressed: () {
-                              Navigator.of(context)
-                                  .push(EditProfilePage.route());
-                            },
-                            child: const Text('Edit Profile'),
-                          ),
                         ],
                       ),
                       spacer,
