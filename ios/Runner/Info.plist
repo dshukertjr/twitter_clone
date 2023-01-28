@@ -57,5 +57,12 @@
           <string>com.supabase</string>
         </array>
       </dict>
-    </array></dict>
+    </array>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Need access to upload images</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Need access to upload images</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Need access to upload images</string>
+	</dict>
 </plist>
