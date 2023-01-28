@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:twitter_clone/components/post_cell.dart';
 import 'package:twitter_clone/components/profile_image.dart';
 import 'package:twitter_clone/constants.dart';
+import 'package:twitter_clone/pages/edit_profile_page.dart';
 import 'package:twitter_clone/state_notifiers/profile_state_notifier.dart';
 
 class ProfilePage extends ConsumerWidget {
@@ -23,6 +24,9 @@ class ProfilePage extends ConsumerWidget {
     final profileWithPosts = ref.watch(profileProvider(_userId));
     final posts = profileWithPosts?.posts;
     final user = profileWithPosts?.user;
+
+    final myUserId = supabase.auth.currentUser?.id;
+    final isMyProfile = myUserId == _userId;
     return Scaffold(
       appBar: AppBar(),
       body: profileWithPosts == null
@@ -34,12 +38,39 @@ class ProfilePage extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: ProfileImage(
-                          user: user!,
-                          size: 60,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          ProfileImage(
+                            user: user!,
+                            size: 60,
+                          ),
+                          OutlinedButton(
+                            style: ButtonStyle(
+                              shape: MaterialStateProperty.all<OutlinedBorder>(
+                                const RoundedRectangleBorder(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(20)),
+                                ),
+                              ),
+                              side: MaterialStateProperty.all<BorderSide>(
+                                const BorderSide(width: 1, color: Colors.grey),
+                              ),
+                              foregroundColor: MaterialStateColor.resolveWith(
+                                  (states) => Colors.black),
+                              padding:
+                                  MaterialStateProperty.all<EdgeInsetsGeometry>(
+                                const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 0),
+                              ),
+                            ),
+                            onPressed: () {
+                              Navigator.of(context)
+                                  .push(EditProfilePage.route());
+                            },
+                            child: const Text('Edit Profile'),
+                          ),
+                        ],
                       ),
                       spacer,
                       Text(

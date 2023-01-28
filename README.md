@@ -8,7 +8,7 @@ create table if not exists public.profiles (
     id uuid primary key not null references auth.users(id),
     name text not null unique,
     description text,
-    image_url text,
+    image_path text,
     created_at timestamp with time zone default timezone('utc' :: text, now()) not null,
     constraint username_validation check (char_length(name) >= 1 and char_length(name) <= 24),
     constraint description_validation check (char_length(description) <= 160)
@@ -256,5 +256,6 @@ create policy "Users can insert messages on rooms they are in." on public.messag
 -- Configure storage
 insert into storage.buckets (id, name, public) values ('posts', 'posts', true);
 insert into storage.buckets (id, name, public) values ('profiles', 'profiles', true);
-create policy "uid has to be the first element in path_tokens" on storage.objects for insert with check (auth.uid()::text = path_tokens[1] and array_length(path_tokens, 1) = 2);
+create policy "uid has to be the owner for insert" on storage.objects for insert with check (auth.uid() = owner);
+create policy "uid has to be the owner for update" on storage.objects for update using (auth.uid() = owner) with check (auth.uid() = owner);
 ```

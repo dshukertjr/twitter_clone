@@ -1,3 +1,5 @@
+import 'package:twitter_clone/constants.dart';
+
 class Profile {
   final String id;
   final String name;
@@ -11,9 +13,27 @@ class Profile {
     required this.description,
   });
 
-  Profile.fromJson(Map<String, dynamic> map)
-      : id = map['id'],
-        name = map['name'],
-        imageUrl = map['image_url'],
-        description = map['description'];
+  Profile.fromJson(Map<String, dynamic> json)
+      : id = json['id'],
+        name = json['name'],
+        imageUrl = json['image_path'] == null
+            ? null
+            : supabase.storage
+                .from('profiles')
+                .getPublicUrl(json['image_path']),
+        description = json['description'];
+
+  Profile copyWith({
+    String? id,
+    String? name,
+    String? imageUrl,
+    String? description,
+  }) {
+    return Profile(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      imageUrl: imageUrl ?? this.imageUrl,
+      description: description ?? this.description,
+    );
+  }
 }
