@@ -69,9 +69,6 @@ class _HomePageState extends ConsumerState<HomePage> {
 
     final notificationsStateNotifier =
         ref.watch(notificationsProvider.notifier);
-    final roomsStateNotifier =
-        ref.watch(roomsStateNotifierProvider(myUserId).notifier);
-
     if (appAuthState is AppAuthProfileLoaded) {
       return Scaffold(
         appBar: AppBar(
@@ -140,18 +137,14 @@ class _HomePageState extends ConsumerState<HomePage> {
             ),
           ],
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            if (_currentTab == HomeTab.messages) {
-              // TODO handle composing new messages
-            } else {
-              Navigator.of(context).push(ComposePostPage.route());
-            }
-          },
-          child: _currentTab == HomeTab.messages
-              ? const Icon(Icons.email_outlined)
-              : const Icon(Icons.add),
-        ),
+        floatingActionButton: _currentTab == HomeTab.messages
+            ? null
+            : FloatingActionButton(
+                onPressed: () {
+                  Navigator.of(context).push(ComposePostPage.route());
+                },
+                child: const Icon(Icons.add),
+              ),
       );
     } else {
       throw UnimplementedError(
