@@ -11,7 +11,6 @@ import 'package:twitter_clone/pages/compose_post_page.dart';
 import 'package:twitter_clone/state_notifiers/auth_state_notifier.dart';
 import 'package:twitter_clone/state_notifiers/notification_state_notifier.dart';
 import 'package:twitter_clone/state_notifiers/rooms_state_notifier.dart';
-import 'package:twitter_clone/state_notifiers/search_state_notifier.dart';
 import 'package:twitter_clone/state_notifiers/timeline_state_notifier.dart';
 
 enum HomeTab { timeline, search, notifications, messages }
@@ -33,7 +32,26 @@ class _HomePageState extends ConsumerState<HomePage> {
         height: 40,
       );
     } else if (_currentTab == HomeTab.search) {
-      return const Text('Search');
+      return SizedBox(
+        width: 999,
+        child: Material(
+          color: Colors.grey[300],
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+          child: InkWell(
+            onTap: () async {
+              await showSearch(
+                context: context,
+                delegate: CustomSearchDelegate(),
+              );
+            },
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Text('Keyword search'),
+            ),
+          ),
+        ),
+      );
     } else {
       return const Text('Notifications');
     }
@@ -196,18 +214,18 @@ class _TimelineTab extends ConsumerWidget {
 class _Timeline extends StatelessWidget {
   const _Timeline({
     Key? key,
-    required List<Post>? posts,
+    required List<Post> posts,
   })  : _posts = posts,
         super(key: key);
 
-  final List<Post>? _posts;
+  final List<Post> _posts;
 
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
-      itemCount: _posts!.length,
+      itemCount: _posts.length,
       itemBuilder: ((context, index) {
-        final post = _posts![index];
+        final post = _posts[index];
         return PostCell(post: post);
       }),
       separatorBuilder: (_, __) => const Divider(height: 1),
@@ -220,18 +238,7 @@ class _SearchTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final searchState = ref.watch(searchNotifierProvider);
-    if (searchState is BeforeSearch) {
-      return const Center(child: Text('Start searching'));
-    } else if (searchState is SearchLoading) {
-      return preloader;
-    } else if (searchState is SearchResultEmpty) {
-      return const Center(child: Text('We couldn\'t find anything'));
-    } else if (searchState is SearchLoaded) {
-      final posts = searchState.posts;
-      return _Timeline(posts: posts);
-    }
-    throw UnimplementedError('Unknown SearchState: ${searchState.runtimeType}');
+    return const Center(child: Text('👆 Search something from the search bar'));
   }
 }
 
@@ -360,5 +367,47 @@ class _MessagesTab extends ConsumerWidget {
       );
     }
     throw UnimplementedError('Unknown roomsState: ${roomsState.runtimeType}');
+  }
+}
+
+class CustomSearchDelegate extends SearchDelegate {
+  Future<List<Post>> search() async {
+    final List data =
+        await supabase.rpc('search_posts', params: {'query': query});
+    return data.map(Post.fromSearchResult).toList();
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    return FutureBuilder<List<Post>>(
+      future: search(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return preloader;
+        }
+        final posts = snapshot.data!;
+        return _Timeline(posts: posts);
+      },
+    );
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    return Container();
+  }
+
+  @override
+  List<Widget>? buildActions(BuildContext context) {
+    return [
+      IconButton(
+        onPressed: () => Navigator.of(context).pop(),
+        icon: const Icon(Icons.close),
+      )
+    ];
+  }
+
+  @override
+  Widget? buildLeading(BuildContext context) {
+    return null;
   }
 }

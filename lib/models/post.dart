@@ -31,6 +31,17 @@ class Post {
             : supabase.storage.from('posts').getPublicUrl(json['image_path']),
         profile = Profile.fromJson(json['user']);
 
+  Post.fromSearchResult(dynamic json)
+      : id = json['id'],
+        body = json['body'],
+        createdAt = DateTime.parse(json['created_at']),
+        likeCount = json['like_count'],
+        haveLiked = json['my_like'] > 0,
+        imageUrl = json['image_path'] == null
+            ? null
+            : supabase.storage.from('posts').getPublicUrl(json['image_path']),
+        profile = Profile.fromJson(json['profile']);
+
   Post like() {
     return Post(
       id: id,

@@ -258,4 +258,39 @@ insert into storage.buckets (id, name, public) values ('posts', 'posts', true);
 insert into storage.buckets (id, name, public) values ('profiles', 'profiles', true);
 create policy "uid has to be the owner for insert" on storage.objects for insert with check (auth.uid() = owner);
 create policy "uid has to be the owner for update" on storage.objects for update using (auth.uid() = owner) with check (auth.uid() = owner);
+
+-- Full text search
+create extension pgroonga with schema extensions;
+
+create index pgroonga_content_index
+          on posts
+       using pgroonga (body)
+        with (tokenizer='TokenMecab');
+
+create or replace
+ function search_posts(query text)
+returns table (
+    id uuid,
+    created_at timestamp with time zone,
+    body text,
+    image_path text,
+    profile json,
+    like_count integer,
+    my_like integer
+) as $$
+  select p.id,
+    p.created_at,
+    p.body,
+    p.image_path,
+    json_build_object(
+      'id', u.id,
+      'name', u.name,
+      'image_path', u.image_path
+    ) as profile,
+    (select count(*) from likes where post_id = p.id) as like_count,
+    (select count(*) from likes where post_id = p.id and user_id = auth.uid()) as my_like
+  from public.posts as p
+  inner join profiles as u on p.user_id = u.id
+  where p.body &@~ query;
+$$ language sql;
 ```
