@@ -2,6 +2,8 @@
 
 Twitter clone build with Flutter and Supabase.
 
+![App Screenshot](/assets/screenshot.png)
+
 ```sql
 -- Tables
 create table if not exists public.profiles (
